@@ -66,7 +66,7 @@ function ContactPage() {
       email: parsed.data.email,
       message: `${parsed.data.subject}\n\n${parsed.data.message}`,
     });
-
+    setBusy(false);
 
     if (error) {
       toast.error("تعذّر إرسال الرسالة، حاولي مرة أخرى.");
