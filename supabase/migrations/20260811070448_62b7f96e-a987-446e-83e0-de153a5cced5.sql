@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.bootstrap_platform_owner() FROM PUBLIC, anon, authenticated;
