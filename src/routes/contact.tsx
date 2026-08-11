@@ -61,8 +61,12 @@ function ContactPage() {
     }
 
     setBusy(true);
-    const { error } = await supabase.from("contact_messages").insert(parsed.data);
-    setBusy(false);
+    const { error } = await supabase.from("contact_messages").insert({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      message: `${parsed.data.subject}\n\n${parsed.data.message}`,
+    });
+
 
     if (error) {
       toast.error("تعذّر إرسال الرسالة، حاولي مرة أخرى.");
