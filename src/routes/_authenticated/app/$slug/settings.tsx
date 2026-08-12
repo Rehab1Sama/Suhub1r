@@ -36,7 +36,7 @@ function TenantBrandingPage() {
       const { data, error } = await supabase
         .from("tenants")
         .select(
-          "id, name, slug, logo_url, primary_color, accent_color, short_description, contact_email, contact_phone, registration_open, students_mode, progress_entry_mode, status",
+          "id, name, slug, custom_domain, logo_url, primary_color, accent_color, short_description, contact_email, contact_phone, registration_open, students_mode, progress_entry_mode, status",
         )
         .eq("slug", slug)
         .maybeSingle();
