@@ -16,6 +16,8 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
 import { TENANT_LOGOS_BUCKET, useTenantLogo } from "@/lib/tenant-branding";
+import { PROGRESS_MODE_OPTIONS } from "@/lib/progress";
+import type { TenantProgressMode } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/settings")({
   component: TenantBrandingPage,
@@ -34,7 +36,7 @@ function TenantBrandingPage() {
       const { data, error } = await supabase
         .from("tenants")
         .select(
-          "id, name, slug, logo_url, primary_color, accent_color, short_description, contact_email, contact_phone, registration_open, students_mode, status",
+          "id, name, slug, logo_url, primary_color, accent_color, short_description, contact_email, contact_phone, registration_open, students_mode, progress_entry_mode, status",
         )
         .eq("slug", slug)
         .maybeSingle();
@@ -48,6 +50,7 @@ function TenantBrandingPage() {
   const [accent, setAccent] = useState("#C9A227");
   const [registration, setRegistration] = useState(false);
   const [studentsMode, setStudentsMode] = useState<"records" | "accounts">("records");
+  const [progressMode, setProgressMode] = useState<TenantProgressMode>("both");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -56,6 +59,7 @@ function TenantBrandingPage() {
     setAccent(tenant.accent_color ?? "#C9A227");
     setRegistration(tenant.registration_open);
     setStudentsMode(tenant.students_mode === "accounts" ? "accounts" : "records");
+    setProgressMode(tenant.progress_entry_mode ?? "both");
   }, [tenant]);
 
   useTenantTheme(primary, accent);
@@ -127,6 +131,7 @@ function TenantBrandingPage() {
       accent_color: accent,
       registration_open: registration,
       students_mode: studentsMode,
+      progress_entry_mode: progressMode,
     });
   }
 
@@ -220,6 +225,32 @@ function TenantBrandingPage() {
                   </span>
                 </span>
               </label>
+            </div>
+          </div>
+          <div className="space-y-2 rounded-xl border border-border p-4">
+            <Label>من يدخل الأنصبة والتقدم والحضور؟</Label>
+            <p className="text-xs text-muted-foreground">
+              تحدّد المقرأة مَن يمكنه تسجيل الأنصبة والتقدم اليومي والحضور.
+            </p>
+            <div className="grid gap-2">
+              {PROGRESS_MODE_OPTIONS.map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex cursor-pointer items-start gap-2 rounded-lg border border-border p-3 text-sm"
+                >
+                  <input
+                    type="radio"
+                    name="progress_mode"
+                    checked={progressMode === opt.value}
+                    onChange={() => setProgressMode(opt.value)}
+                    className="mt-1 size-4"
+                  />
+                  <span>
+                    <span className="block font-medium">{opt.title}</span>
+                    <span className="block text-xs text-muted-foreground">{opt.hint}</span>
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
           <Button type="submit" disabled={save.isPending}>
