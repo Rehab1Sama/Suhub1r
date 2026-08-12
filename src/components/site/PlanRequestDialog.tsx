@@ -71,7 +71,7 @@ export function PlanRequestDialog({
       toast.error("تعذّر إرسال الطلب، حاولي مرة أخرى.");
       return;
     }
-    toast.success("وصلنا طلبك — سنتواصل معك خلال يوم عمل واحد.");
+    toast.success("وصلنا طلبك — سنتواصل معك خلال ٤٨ ساعة.");
     onOpenChange(false);
   }
 
