@@ -1,6 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Mail } from "lucide-react";
-import { SITE_NAV, CONTACT_EMAIL } from "@/lib/site-content";
+import { Mail, Send } from "lucide-react";
+import {
+  SITE_NAV,
+  CONTACT_EMAIL,
+  CONTACT_TELEGRAM,
+  CONTACT_TELEGRAM_URL,
+  REPLY_TIME_TEXT,
+} from "@/lib/site-content";
+import suhubLogo from "@/assets/suhub-logo.png";
 
 export function SiteFooter() {
   return (
@@ -8,9 +15,14 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:grid-cols-3">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-xl gradient-primary text-primary-foreground">
-              <BookOpen className="size-4" />
-            </span>
+            <img
+              src={suhubLogo}
+              alt="شعار منصة سُحُب"
+              width={1024}
+              height={1024}
+              loading="lazy"
+              className="size-10 object-contain"
+            />
             <span className="font-display text-xl font-bold">سُحُب</span>
           </div>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
@@ -39,9 +51,18 @@ export function SiteFooter() {
             className="mt-3 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <Mail className="size-4" />
-            {CONTACT_EMAIL}
+            <span dir="ltr">{CONTACT_EMAIL}</span>
           </a>
-          <p className="mt-2 text-sm text-muted-foreground">الرد خلال يوم عمل واحد</p>
+          <a
+            href={CONTACT_TELEGRAM_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Send className="size-4" />
+            <span dir="ltr">{CONTACT_TELEGRAM}</span>
+          </a>
+          <p className="mt-2 text-sm text-muted-foreground">{REPLY_TIME_TEXT}</p>
         </div>
       </div>
 
