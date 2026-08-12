@@ -25,7 +25,8 @@ export type TenantContext = {
  * القراءة لكل موظفات المقرأة ومالكة المنصة، والإدارة للقائدة ونائبتها ومالكة المنصة.
  */
 export function useTenantContext(): TenantContext {
-  const { slug } = useParams({ from: "/_authenticated/app/$slug" });
+  const params = useParams({ strict: false });
+  const slug = String(params.slug ?? "");
   const { roles, isPlatformOwner, loading } = useAuth();
 
   const tenantQuery = useQuery({
