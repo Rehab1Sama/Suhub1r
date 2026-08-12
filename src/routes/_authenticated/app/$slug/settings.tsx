@@ -131,6 +131,7 @@ function TenantBrandingPage() {
       accent_color: accent,
       registration_open: registration,
       students_mode: studentsMode,
+      progress_entry_mode: progressMode,
     });
   }
 
