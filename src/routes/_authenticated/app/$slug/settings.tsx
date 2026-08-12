@@ -186,6 +186,42 @@ function TenantBrandingPage() {
             </div>
             <Switch checked={registration} onCheckedChange={setRegistration} />
           </div>
+          <div className="space-y-2 rounded-xl border border-border p-4">
+            <Label>طريقة إدارة الطالبات</Label>
+            <p className="text-xs text-muted-foreground">اختاري ما يناسب مقرأتك.</p>
+            <div className="grid gap-2">
+              <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border p-3 text-sm">
+                <input
+                  type="radio"
+                  name="students_mode"
+                  checked={studentsMode === "records"}
+                  onChange={() => setStudentsMode("records")}
+                  className="mt-1 size-4"
+                />
+                <span>
+                  <span className="block font-medium">سجلات بسيطة</span>
+                  <span className="block text-xs text-muted-foreground">
+                    الطالبات سجلات يديرها طاقم المقرأة، دون حسابات دخول مستقلة لكل طالبة.
+                  </span>
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border p-3 text-sm">
+                <input
+                  type="radio"
+                  name="students_mode"
+                  checked={studentsMode === "accounts"}
+                  onChange={() => setStudentsMode("accounts")}
+                  className="mt-1 size-4"
+                />
+                <span>
+                  <span className="block font-medium">حسابات مستقلة</span>
+                  <span className="block text-xs text-muted-foreground">
+                    لكل طالبة حساب دخول خاص بها وتتابع إنجازها بنفسها (يتطلب دعوة الطالبات).
+                  </span>
+                </span>
+              </label>
+            </div>
+          </div>
           <Button type="submit" disabled={save.isPending}>
             {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
             حفظ التغييرات
