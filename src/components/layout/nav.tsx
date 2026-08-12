@@ -5,6 +5,7 @@ export const platformNav: NavItem[] = [
   { label: "لوحة المنصة", to: "/platform", icon: <LayoutDashboard className="size-4" /> },
   { label: "المقارئ", to: "/platform/tenants", icon: <Building2 className="size-4" /> },
   { label: "طلبات الاشتراك", to: "/platform/requests", icon: <Inbox className="size-4" /> },
+  { label: "الباقات والأسعار", to: "/platform/plans", icon: <CreditCard className="size-4" /> },
   { label: "الفواتير والإيرادات", to: "/platform/billing", icon: <Wallet className="size-4" /> },
 ];
 

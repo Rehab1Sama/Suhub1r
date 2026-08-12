@@ -21,6 +21,7 @@ import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as MSlugRouteImport } from './routes/m.$slug'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform/index'
 import { Route as AuthenticatedPlatformBillingRouteImport } from './routes/_authenticated/platform/billing'
+import { Route as AuthenticatedPlatformPlansRouteImport } from './routes/_authenticated/platform/plans'
 import { Route as AuthenticatedPlatformRequestsRouteImport } from './routes/_authenticated/platform/requests'
 import { Route as AuthenticatedPlatformTenantsRouteImport } from './routes/_authenticated/platform/tenants'
 import { Route as AuthenticatedAppSlugIndexRouteImport } from './routes/_authenticated/app/$slug/index'
@@ -94,6 +95,12 @@ const AuthenticatedPlatformBillingRoute =
   AuthenticatedPlatformBillingRouteImport.update({
     id: '/platform/billing',
     path: '/platform/billing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformPlansRoute =
+  AuthenticatedPlatformPlansRouteImport.update({
+    id: '/platform/plans',
+    path: '/platform/plans',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPlatformRequestsRoute =
@@ -186,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/platform/billing': typeof AuthenticatedPlatformBillingRoute
+  '/platform/plans': typeof AuthenticatedPlatformPlansRoute
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
@@ -212,6 +220,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/platform/billing': typeof AuthenticatedPlatformBillingRoute
+  '/platform/plans': typeof AuthenticatedPlatformPlansRoute
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
@@ -240,6 +249,7 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/_authenticated/platform/billing': typeof AuthenticatedPlatformBillingRoute
+  '/_authenticated/platform/plans': typeof AuthenticatedPlatformPlansRoute
   '/_authenticated/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/_authenticated/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/m/$slug'
     | '/platform/billing'
+    | '/platform/plans'
     | '/platform/requests'
     | '/platform/tenants'
     | '/platform/'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/m/$slug'
     | '/platform/billing'
+    | '/platform/plans'
     | '/platform/requests'
     | '/platform/tenants'
     | '/platform'
@@ -321,6 +333,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/m/$slug'
     | '/_authenticated/platform/billing'
+    | '/_authenticated/platform/plans'
     | '/_authenticated/platform/requests'
     | '/_authenticated/platform/tenants'
     | '/_authenticated/platform/'
@@ -436,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformBillingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/platform/plans': {
+      id: '/_authenticated/platform/plans'
+      path: '/platform/plans'
+      fullPath: '/platform/plans'
+      preLoaderRoute: typeof AuthenticatedPlatformPlansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/platform/requests': {
       id: '/_authenticated/platform/requests'
       path: '/platform/requests'
@@ -533,6 +553,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPlatformBillingRoute: typeof AuthenticatedPlatformBillingRoute
+  AuthenticatedPlatformPlansRoute: typeof AuthenticatedPlatformPlansRoute
   AuthenticatedPlatformRequestsRoute: typeof AuthenticatedPlatformRequestsRoute
   AuthenticatedPlatformTenantsRoute: typeof AuthenticatedPlatformTenantsRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
@@ -551,6 +572,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPlatformBillingRoute: AuthenticatedPlatformBillingRoute,
+  AuthenticatedPlatformPlansRoute: AuthenticatedPlatformPlansRoute,
   AuthenticatedPlatformRequestsRoute: AuthenticatedPlatformRequestsRoute,
   AuthenticatedPlatformTenantsRoute: AuthenticatedPlatformTenantsRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
@@ -584,13 +606,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

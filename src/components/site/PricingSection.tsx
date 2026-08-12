@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import {
   BILLING_OPTIONS,
   planPriceLabel,
+  planComparePrice,
+  planDiscountPercent,
   type BillingPeriod,
   type PlanRow,
 } from "@/lib/pricing";
@@ -68,6 +70,8 @@ export function PricingSection() {
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           {plans?.map((plan) => {
             const price = planPriceLabel(plan, period);
+            const before = planComparePrice(plan, period);
+            const discount = planDiscountPercent(plan, period);
             const features = (plan.features as string[] | null) ?? [];
             return (
               <article
@@ -92,6 +96,18 @@ export function PricingSection() {
                     </span>
                   ) : null}
                 </p>
+                {before ? (
+                  <p className="mt-1.5 flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground line-through tabular-nums">
+                      {before.toLocaleString("ar-EG")} {plan.currency}
+                    </span>
+                    {discount ? (
+                      <span className="rounded-full bg-gold px-2 py-0.5 text-[11px] font-medium text-gold-foreground">
+                        خصم {discount.toLocaleString("ar-EG")}%
+                      </span>
+                    ) : null}
+                  </p>
+                ) : null}
                 {plan.is_custom_priced ? (
                   <p className="mt-1 text-xs text-muted-foreground">اتفاق سنوي أو شراء كامل</p>
                 ) : null}
