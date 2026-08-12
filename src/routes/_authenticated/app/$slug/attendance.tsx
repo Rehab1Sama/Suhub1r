@@ -20,7 +20,8 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useTenantContext } from "@/hooks/useTenantContext";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
-import { ATTENDANCE_LABELS, ATTENDANCE_STATUS_KEYS, type AttendanceStatus } from "@/lib/progress";
+import { ATTENDANCE_LABELS, ATTENDANCE_STATUS_KEYS } from "@/lib/progress";
+import type { AttendanceStatus } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/attendance")({
   head: () => ({
