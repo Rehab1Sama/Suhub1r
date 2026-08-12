@@ -120,14 +120,14 @@ function TenantDashboard() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
-              label="الطالبات"
-              value={statsQuery.data?.students ?? 0}
-              {...(plan?.max_students ? { hint: `الحد الأعلى ${plan.max_students}` } : {})}
-              icon={<GraduationCap className="size-5" />}
+              label="المسارات"
+              value={statsQuery.data?.tracks ?? 0}
+              {...(plan?.max_circles ? { hint: `الحد الأعلى للحلقات ${plan.max_circles}` } : {})}
+              icon={<Layers className="size-5" />}
             />
-            <StatCard label="المعلمات" value={statsQuery.data?.teachers ?? 0} tone="success" icon={<Users className="size-5" />} />
-            <StatCard label="المشرفات" value={statsQuery.data?.supervisors ?? 0} tone="gold" icon={<ShieldCheck className="size-5" />} />
-            <StatCard label="الإداريات" value={statsQuery.data?.admins ?? 0} icon={<Layers className="size-5" />} />
+            <StatCard label="الحلقات" value={statsQuery.data?.circles ?? 0} tone="success" icon={<CircleDot className="size-5" />} />
+            <StatCard label="الطالبات" value={statsQuery.data?.students ?? 0} tone="gold" icon={<GraduationCap className="size-5" />} />
+            <StatCard label="المتطوعات" value={statsQuery.data?.volunteers ?? 0} icon={<Heart className="size-5" />} />
           </div>
         )}
 
