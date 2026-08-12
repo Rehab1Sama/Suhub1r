@@ -31,6 +31,7 @@ import { Route as AuthenticatedAppSlugSettingsRouteImport } from './routes/_auth
 import { Route as AuthenticatedAppSlugStudentsRouteImport } from './routes/_authenticated/app/$slug/students'
 import { Route as AuthenticatedAppSlugTracksRouteImport } from './routes/_authenticated/app/$slug/tracks'
 import { Route as AuthenticatedAppSlugVolunteersRouteImport } from './routes/_authenticated/app/$slug/volunteers'
+import { Route as ApiPublicWebhooksPaymentsRouteImport } from './routes/api/public/webhooks/payments'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -153,6 +154,12 @@ const AuthenticatedAppSlugVolunteersRoute =
     path: '/app/$slug/volunteers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicWebhooksPaymentsRoute =
+  ApiPublicWebhooksPaymentsRouteImport.update({
+    id: '/api/public/webhooks/payments',
+    path: '/api/public/webhooks/payments',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
   '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
   '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
+  '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
   '/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -198,6 +206,7 @@ export interface FileRoutesByTo {
   '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
   '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
   '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
+  '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
   '/app/$slug': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRoutesById {
@@ -223,6 +232,7 @@ export interface FileRoutesById {
   '/_authenticated/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
   '/_authenticated/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
   '/_authenticated/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
+  '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
   '/_authenticated/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRouteTypes {
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/app/$slug/students'
     | '/app/$slug/tracks'
     | '/app/$slug/volunteers'
+    | '/api/public/webhooks/payments'
     | '/app/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/app/$slug/students'
     | '/app/$slug/tracks'
     | '/app/$slug/volunteers'
+    | '/api/public/webhooks/payments'
     | '/app/$slug'
   id:
     | '__root__'
@@ -295,6 +307,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/$slug/students'
     | '/_authenticated/app/$slug/tracks'
     | '/_authenticated/app/$slug/volunteers'
+    | '/api/public/webhooks/payments'
     | '/_authenticated/app/$slug/'
   fileRoutesById: FileRoutesById
 }
@@ -308,6 +321,7 @@ export interface RootRouteChildren {
   RolesRoute: typeof RolesRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
+  ApiPublicWebhooksPaymentsRoute: typeof ApiPublicWebhooksPaymentsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -466,6 +480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSlugVolunteersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/webhooks/payments': {
+      id: '/api/public/webhooks/payments'
+      path: '/api/public/webhooks/payments'
+      fullPath: '/api/public/webhooks/payments'
+      preLoaderRoute: typeof ApiPublicWebhooksPaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -514,17 +535,8 @@ const rootRouteChildren: RootRouteChildren = {
   RolesRoute: RolesRoute,
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
+  ApiPublicWebhooksPaymentsRoute: ApiPublicWebhooksPaymentsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
