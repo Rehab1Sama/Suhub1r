@@ -23,7 +23,11 @@ import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedPlatformRequestsRouteImport } from './routes/_authenticated/platform/requests'
 import { Route as AuthenticatedPlatformTenantsRouteImport } from './routes/_authenticated/platform/tenants'
 import { Route as AuthenticatedAppSlugIndexRouteImport } from './routes/_authenticated/app/$slug/index'
+import { Route as AuthenticatedAppSlugCirclesRouteImport } from './routes/_authenticated/app/$slug/circles'
 import { Route as AuthenticatedAppSlugSettingsRouteImport } from './routes/_authenticated/app/$slug/settings'
+import { Route as AuthenticatedAppSlugStudentsRouteImport } from './routes/_authenticated/app/$slug/students'
+import { Route as AuthenticatedAppSlugTracksRouteImport } from './routes/_authenticated/app/$slug/tracks'
+import { Route as AuthenticatedAppSlugVolunteersRouteImport } from './routes/_authenticated/app/$slug/volunteers'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -98,10 +102,34 @@ const AuthenticatedAppSlugIndexRoute =
     path: '/app/$slug/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAppSlugCirclesRoute =
+  AuthenticatedAppSlugCirclesRouteImport.update({
+    id: '/app/$slug/circles',
+    path: '/app/$slug/circles',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAppSlugSettingsRoute =
   AuthenticatedAppSlugSettingsRouteImport.update({
     id: '/app/$slug/settings',
     path: '/app/$slug/settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugStudentsRoute =
+  AuthenticatedAppSlugStudentsRouteImport.update({
+    id: '/app/$slug/students',
+    path: '/app/$slug/students',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugTracksRoute =
+  AuthenticatedAppSlugTracksRouteImport.update({
+    id: '/app/$slug/tracks',
+    path: '/app/$slug/tracks',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugVolunteersRoute =
+  AuthenticatedAppSlugVolunteersRouteImport.update({
+    id: '/app/$slug/volunteers',
+    path: '/app/$slug/volunteers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -118,7 +146,11 @@ export interface FileRoutesByFullPath {
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
   '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
+  '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -134,7 +166,11 @@ export interface FileRoutesByTo {
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
+  '/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
   '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
+  '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/app/$slug': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRoutesById {
@@ -152,7 +188,11 @@ export interface FileRoutesById {
   '/_authenticated/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/_authenticated/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/_authenticated/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
   '/_authenticated/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/_authenticated/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
+  '/_authenticated/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/_authenticated/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/_authenticated/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRouteTypes {
@@ -170,7 +210,11 @@ export interface FileRouteTypes {
     | '/platform/requests'
     | '/platform/tenants'
     | '/platform/'
+    | '/app/$slug/circles'
     | '/app/$slug/settings'
+    | '/app/$slug/students'
+    | '/app/$slug/tracks'
+    | '/app/$slug/volunteers'
     | '/app/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -186,7 +230,11 @@ export interface FileRouteTypes {
     | '/platform/requests'
     | '/platform/tenants'
     | '/platform'
+    | '/app/$slug/circles'
     | '/app/$slug/settings'
+    | '/app/$slug/students'
+    | '/app/$slug/tracks'
+    | '/app/$slug/volunteers'
     | '/app/$slug'
   id:
     | '__root__'
@@ -203,7 +251,11 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/requests'
     | '/_authenticated/platform/tenants'
     | '/_authenticated/platform/'
+    | '/_authenticated/app/$slug/circles'
     | '/_authenticated/app/$slug/settings'
+    | '/_authenticated/app/$slug/students'
+    | '/_authenticated/app/$slug/tracks'
+    | '/_authenticated/app/$slug/volunteers'
     | '/_authenticated/app/$slug/'
   fileRoutesById: FileRoutesById
 }
@@ -319,11 +371,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSlugIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/app/$slug/circles': {
+      id: '/_authenticated/app/$slug/circles'
+      path: '/app/$slug/circles'
+      fullPath: '/app/$slug/circles'
+      preLoaderRoute: typeof AuthenticatedAppSlugCirclesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app/$slug/settings': {
       id: '/_authenticated/app/$slug/settings'
       path: '/app/$slug/settings'
       fullPath: '/app/$slug/settings'
       preLoaderRoute: typeof AuthenticatedAppSlugSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/students': {
+      id: '/_authenticated/app/$slug/students'
+      path: '/app/$slug/students'
+      fullPath: '/app/$slug/students'
+      preLoaderRoute: typeof AuthenticatedAppSlugStudentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/tracks': {
+      id: '/_authenticated/app/$slug/tracks'
+      path: '/app/$slug/tracks'
+      fullPath: '/app/$slug/tracks'
+      preLoaderRoute: typeof AuthenticatedAppSlugTracksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/volunteers': {
+      id: '/_authenticated/app/$slug/volunteers'
+      path: '/app/$slug/volunteers'
+      fullPath: '/app/$slug/volunteers'
+      preLoaderRoute: typeof AuthenticatedAppSlugVolunteersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -334,7 +414,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlatformRequestsRoute: typeof AuthenticatedPlatformRequestsRoute
   AuthenticatedPlatformTenantsRoute: typeof AuthenticatedPlatformTenantsRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
+  AuthenticatedAppSlugCirclesRoute: typeof AuthenticatedAppSlugCirclesRoute
   AuthenticatedAppSlugSettingsRoute: typeof AuthenticatedAppSlugSettingsRoute
+  AuthenticatedAppSlugStudentsRoute: typeof AuthenticatedAppSlugStudentsRoute
+  AuthenticatedAppSlugTracksRoute: typeof AuthenticatedAppSlugTracksRoute
+  AuthenticatedAppSlugVolunteersRoute: typeof AuthenticatedAppSlugVolunteersRoute
   AuthenticatedAppSlugIndexRoute: typeof AuthenticatedAppSlugIndexRoute
 }
 
@@ -343,7 +427,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlatformRequestsRoute: AuthenticatedPlatformRequestsRoute,
   AuthenticatedPlatformTenantsRoute: AuthenticatedPlatformTenantsRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
+  AuthenticatedAppSlugCirclesRoute: AuthenticatedAppSlugCirclesRoute,
   AuthenticatedAppSlugSettingsRoute: AuthenticatedAppSlugSettingsRoute,
+  AuthenticatedAppSlugStudentsRoute: AuthenticatedAppSlugStudentsRoute,
+  AuthenticatedAppSlugTracksRoute: AuthenticatedAppSlugTracksRoute,
+  AuthenticatedAppSlugVolunteersRoute: AuthenticatedAppSlugVolunteersRoute,
   AuthenticatedAppSlugIndexRoute: AuthenticatedAppSlugIndexRoute,
 }
 
@@ -364,13 +452,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

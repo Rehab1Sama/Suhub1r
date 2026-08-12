@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Users, GraduationCap, Layers, ShieldCheck, CalendarCheck, BookMarked } from "lucide-react";
+import { GraduationCap, CircleDot, Layers, Heart, CalendarCheck, BookMarked } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/layout/AppShell";
 import { tenantNav } from "@/components/layout/nav";
@@ -8,7 +8,7 @@ import { StatCard, LoadingBlock, EmptyState } from "@/components/ui-blocks";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
-import { ROLE_LABELS, SUBSCRIPTION_STATUS_LABELS, type AppRole } from "@/lib/roles";
+import { ROLE_LABELS, SUBSCRIPTION_STATUS_LABELS } from "@/lib/roles";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/")({
   component: TenantDashboard,
@@ -40,22 +40,26 @@ function TenantDashboard() {
     queryKey: ["tenant-stats", tenant?.id],
     enabled: !!tenant?.id,
     queryFn: async () => {
-      const roleCount = async (role: AppRole) => {
-        const { count, error } = await supabase
-          .from("user_roles")
-          .select("id", { count: "exact", head: true })
-          .eq("tenant_id", tenant!.id)
-          .eq("role", role);
+      const count = async (q: ReturnType<typeof supabase.from>) => {
+        const { count, error } = await q;
         if (error) throw error;
         return count ?? 0;
       };
-      const [students, teachers, supervisors, admins] = await Promise.all([
-        roleCount("student"),
-        roleCount("teacher"),
-        roleCount("supervisor"),
-        roleCount("tenant_admin"),
+      const [tracks, circles, students, volunteers] = await Promise.all([
+        count(
+          supabase.from("tracks").select("id", { count: "exact", head: true }).eq("tenant_id", tenant!.id).eq("status", "active"),
+        ),
+        count(
+          supabase.from("circles").select("id", { count: "exact", head: true }).eq("tenant_id", tenant!.id).eq("status", "active"),
+        ),
+        count(
+          supabase.from("students").select("id", { count: "exact", head: true }).eq("tenant_id", tenant!.id).eq("status", "active"),
+        ),
+        count(
+          supabase.from("user_roles").select("id", { count: "exact", head: true }).eq("tenant_id", tenant!.id).eq("is_volunteer", true),
+        ),
       ]);
-      return { students, teachers, supervisors, admins };
+      return { tracks, circles, students, volunteers };
     },
   });
 
@@ -116,14 +120,14 @@ function TenantDashboard() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
-              label="الطالبات"
-              value={statsQuery.data?.students ?? 0}
-              {...(plan?.max_students ? { hint: `الحد الأعلى ${plan.max_students}` } : {})}
-              icon={<GraduationCap className="size-5" />}
+              label="المسارات"
+              value={statsQuery.data?.tracks ?? 0}
+              {...(plan?.max_circles ? { hint: `الحد الأعلى للحلقات ${plan.max_circles}` } : {})}
+              icon={<Layers className="size-5" />}
             />
-            <StatCard label="المعلمات" value={statsQuery.data?.teachers ?? 0} tone="success" icon={<Users className="size-5" />} />
-            <StatCard label="المشرفات" value={statsQuery.data?.supervisors ?? 0} tone="gold" icon={<ShieldCheck className="size-5" />} />
-            <StatCard label="الإداريات" value={statsQuery.data?.admins ?? 0} icon={<Layers className="size-5" />} />
+            <StatCard label="الحلقات" value={statsQuery.data?.circles ?? 0} tone="success" icon={<CircleDot className="size-5" />} />
+            <StatCard label="الطالبات" value={statsQuery.data?.students ?? 0} tone="gold" icon={<GraduationCap className="size-5" />} />
+            <StatCard label="المتطوعات" value={statsQuery.data?.volunteers ?? 0} icon={<Heart className="size-5" />} />
           </div>
         )}
 
