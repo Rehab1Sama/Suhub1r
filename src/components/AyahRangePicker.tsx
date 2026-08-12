@@ -58,7 +58,7 @@ export function AyahRangePicker({
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Select
-          disabled={disabled}
+          disabled={!!disabled}
           value={value.fromSurah}
           onValueChange={(v) =>
             onChange({
@@ -78,7 +78,7 @@ export function AyahRangePicker({
           </SelectContent>
         </Select>
         <Select
-          disabled={disabled || !value.fromSurah}
+          disabled={!!disabled || !value.fromSurah}
           value={value.fromAyah}
           onValueChange={(v) => onChange({ ...value, fromAyah: v })}
         >
@@ -90,7 +90,7 @@ export function AyahRangePicker({
           </SelectContent>
         </Select>
         <Select
-          disabled={disabled}
+          disabled={!!disabled}
           value={value.toSurah}
           onValueChange={(v) => onChange({ ...value, toSurah: v, toAyah: "1" })}
         >
@@ -102,7 +102,7 @@ export function AyahRangePicker({
           </SelectContent>
         </Select>
         <Select
-          disabled={disabled || !value.toSurah}
+          disabled={!!disabled || !value.toSurah}
           value={value.toAyah}
           onValueChange={(v) => onChange({ ...value, toAyah: v })}
         >
