@@ -120,6 +120,7 @@ export type Database = {
           schedule: Json
           status: string
           teacher_name: string | null
+          teacher_user_id: string | null
           tenant_id: string
           track_id: string | null
           updated_at: string
@@ -132,6 +133,7 @@ export type Database = {
           schedule?: Json
           status?: string
           teacher_name?: string | null
+          teacher_user_id?: string | null
           tenant_id: string
           track_id?: string | null
           updated_at?: string
@@ -144,6 +146,7 @@ export type Database = {
           schedule?: Json
           status?: string
           teacher_name?: string | null
+          teacher_user_id?: string | null
           tenant_id?: string
           track_id?: string | null
           updated_at?: string
@@ -437,41 +440,63 @@ export type Database = {
       progress_records: {
         Row: {
           amount: number
+          circle_id: string | null
           created_at: string
           entered_by: string | null
+          from_ayah: number | null
+          from_surah: number | null
           id: string
           notes: string | null
           record_date: string
           student_id: string
           tenant_id: string
+          to_ayah: number | null
+          to_surah: number | null
           track_id: string
           updated_at: string
         }
         Insert: {
           amount?: number
+          circle_id?: string | null
           created_at?: string
           entered_by?: string | null
+          from_ayah?: number | null
+          from_surah?: number | null
           id?: string
           notes?: string | null
           record_date?: string
           student_id: string
           tenant_id: string
+          to_ayah?: number | null
+          to_surah?: number | null
           track_id: string
           updated_at?: string
         }
         Update: {
           amount?: number
+          circle_id?: string | null
           created_at?: string
           entered_by?: string | null
+          from_ayah?: number | null
+          from_surah?: number | null
           id?: string
           notes?: string | null
           record_date?: string
           student_id?: string
           tenant_id?: string
+          to_ayah?: number | null
+          to_surah?: number | null
           track_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "progress_records_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "progress_records_student_id_fkey"
             columns: ["student_id"]
@@ -498,34 +523,46 @@ export type Database = {
       quotas: {
         Row: {
           created_at: string
+          from_ayah: number | null
+          from_surah: number | null
           id: string
           notes: string | null
           period: string
           student_id: string
           target_amount: number
           tenant_id: string
+          to_ayah: number | null
+          to_surah: number | null
           track_id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          from_ayah?: number | null
+          from_surah?: number | null
           id?: string
           notes?: string | null
           period?: string
           student_id: string
           target_amount?: number
           tenant_id: string
+          to_ayah?: number | null
+          to_surah?: number | null
           track_id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          from_ayah?: number | null
+          from_surah?: number | null
           id?: string
           notes?: string | null
           period?: string
           student_id?: string
           target_amount?: number
           tenant_id?: string
+          to_ayah?: number | null
+          to_surah?: number | null
           track_id?: string
           updated_at?: string
         }

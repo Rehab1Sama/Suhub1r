@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Target, BookOpenText, Save } from "lucide-react";
@@ -17,15 +17,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useTenantContext } from "@/hooks/useTenantContext";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
+import { trackCategoryLabel } from "@/lib/track-categories";
+import {
+  AyahRangePicker,
+  emptyRange,
+  isCompleteRange,
+  rangePages,
+  toRange,
+  type RangeValue,
+} from "@/components/AyahRangePicker";
+import { normalizeRange } from "@/lib/quran";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/progress")({
   head: () => ({
     meta: [
       { title: "الأنصبة والتقدم — سُحُب" },
-      { name: "description", content: "تحديد الأنصبة للطالبات وتسجيل تقدمهن اليومي في الحفظ والمراجعة والتلاوة." },
+      { name: "description", content: "تسجيل أنصبة الطالبات بالسور والآيات وحساب الأوجه تلقائياً وفق مصحف المدينة." },
       { property: "og:title", content: "الأنصبة والتقدم — سُحُب" },
       { property: "og:description", content: "متابعة أنصبة الطالبات وإنجازهن اليومي على منصة سُحُب." },
     ],
@@ -40,17 +49,49 @@ function todayISO() {
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
+function rangeFrom(row: {
+  from_surah: number | null;
+  from_ayah: number | null;
+  to_surah: number | null;
+  to_ayah: number | null;
+}): RangeValue {
+  if (!row.from_surah || !row.from_ayah || !row.to_surah || !row.to_ayah) return emptyRange;
+  return {
+    fromSurah: String(row.from_surah),
+    fromAyah: String(row.from_ayah),
+    toSurah: String(row.to_surah),
+    toAyah: String(row.to_ayah),
+  };
+}
+
+function rangeColumns(v: RangeValue) {
+  const r = toRange(v);
+  if (!r) return { from_surah: null, from_ayah: null, to_surah: null, to_ayah: null };
+  const n = normalizeRange(r);
+  return {
+    from_surah: n.fromSurah,
+    from_ayah: n.fromAyah,
+    to_surah: n.toSurah,
+    to_ayah: n.toAyah,
+  };
+}
+
 function ProgressPage() {
-  const { tenant, canRead, canRecord, loading } = useTenantContext();
+  const { tenant, canRead, canManage, canRecord, loading } = useTenantContext();
   const qc = useQueryClient();
   const [circleId, setCircleId] = useState<string>("");
   const [date, setDate] = useState(todayISO());
-  // الهدف لكل طالبة (نصاب) والتقدم المسجل لذلك اليوم
-  const [targets, setTargets] = useState<Record<string, string>>({});
-  const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [targetRanges, setTargetRanges] = useState<Record<string, RangeValue>>({});
+  const [dayRanges, setDayRanges] = useState<Record<string, RangeValue>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
 
   useTenantTheme(tenant?.primary_color ?? null, tenant?.accent_color ?? null);
+
+  const meQuery = useQuery({
+    queryKey: ["auth-user"],
+    queryFn: async () => (await supabase.auth.getUser()).data.user,
+  });
+  const myId = meQuery.data?.id ?? null;
 
   const circlesQuery = useQuery({
     queryKey: ["circles", tenant?.id],
@@ -58,7 +99,7 @@ function ProgressPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("circles")
-        .select("id, name, track_id, tracks(name, category)")
+        .select("id, name, track_id, teacher_user_id, tracks(name, category)")
         .eq("tenant_id", tenant!.id)
         .eq("status", "active")
         .order("name");
@@ -66,6 +107,15 @@ function ProgressPage() {
       return data;
     },
   });
+
+  const allCircles = circlesQuery.data ?? [];
+  const myCircles = myId ? allCircles.filter((c) => c.teacher_user_id === myId) : [];
+  // المعلمة/المشرفة ترى حلقاتها المرتبطة بها فقط؛ القيادة ترى كل الحلقات
+  const visibleCircles = canManage ? allCircles : myCircles.length ? myCircles : [];
+
+  useEffect(() => {
+    if (!circleId && visibleCircles.length) setCircleId(visibleCircles[0]!.id);
+  }, [circleId, visibleCircles]);
 
   const studentsQuery = useQuery({
     queryKey: ["students", tenant?.id],
@@ -100,7 +150,7 @@ function ProgressPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quotas")
-        .select("student_id, track_id, target_amount")
+        .select("student_id, track_id, target_amount, from_surah, from_ayah, to_surah, to_ayah")
         .eq("tenant_id", tenant!.id);
       if (error) throw error;
       return data;
@@ -113,7 +163,7 @@ function ProgressPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("progress_records")
-        .select("student_id, track_id, amount, notes")
+        .select("student_id, track_id, amount, notes, from_surah, from_ayah, to_surah, to_ayah")
         .eq("tenant_id", tenant!.id)
         .eq("record_date", date);
       if (error) throw error;
@@ -121,45 +171,49 @@ function ProgressPage() {
     },
   });
 
-  const selected = (circlesQuery.data ?? []).find((c) => c.id === circleId);
+  const selected = visibleCircles.find((c) => c.id === circleId);
   const trackId = selected?.track_id ?? "";
 
-  // قائمة الطالبات في الحلقة المختارة
   const enroll = enrollmentsQuery.data ?? {};
   const circleStudents = (studentsQuery.data ?? []).filter((s) =>
     (enroll[s.id] ?? []).includes(circleId),
   );
 
-  function syncState() {
+  // تعبئة الحالة من قاعدة البيانات عند تغيير الحلقة أو اليوم
+  const quotaRows = quotasQuery.data;
+  const dayRows = dayProgressQuery.data;
+  useEffect(() => {
     if (!trackId) return;
-    const nextTargets: Record<string, string> = {};
-    const nextAmounts: Record<string, string> = {};
-    const nextNotes: Record<string, string> = {};
-    for (const q of quotasQuery.data ?? []) {
-      if (q.track_id === trackId) nextTargets[q.student_id] = String(q.target_amount);
-    }
-    for (const r of dayProgressQuery.data ?? []) {
+    const t: Record<string, RangeValue> = {};
+    for (const q of quotaRows ?? []) if (q.track_id === trackId) t[q.student_id] = rangeFrom(q);
+    const d: Record<string, RangeValue> = {};
+    const n: Record<string, string> = {};
+    for (const r of dayRows ?? []) {
       if (r.track_id === trackId) {
-        nextAmounts[r.student_id] = String(r.amount);
-        if (r.notes) nextNotes[r.student_id] = r.notes;
+        d[r.student_id] = rangeFrom(r);
+        if (r.notes) n[r.student_id] = r.notes;
       }
     }
-    setTargets(nextTargets);
-    setAmounts(nextAmounts);
-    setNotes(nextNotes);
-  }
+    setTargetRanges(t);
+    setDayRanges(d);
+    setNotes(n);
+  }, [trackId, date, quotaRows, dayRows]);
 
   const saveQuotas = useMutation({
     mutationFn: async () => {
       if (!trackId) return;
       const rows = circleStudents
-        .filter((s) => (targets[s.id] ?? "").trim() !== "")
-        .map((s) => ({
-          tenant_id: tenant!.id,
-          student_id: s.id,
-          track_id: trackId,
-          target_amount: Number(targets[s.id] ?? "0"),
-        }));
+        .filter((s) => isCompleteRange(targetRanges[s.id] ?? emptyRange))
+        .map((s) => {
+          const v = targetRanges[s.id]!;
+          return {
+            tenant_id: tenant!.id,
+            student_id: s.id,
+            track_id: trackId,
+            target_amount: rangePages(v) ?? 0,
+            ...rangeColumns(v),
+          };
+        });
       if (!rows.length) return;
       const { error } = await supabase
         .from("quotas")
@@ -177,15 +231,20 @@ function ProgressPage() {
     mutationFn: async () => {
       if (!trackId) return;
       const rows = circleStudents
-        .filter((s) => (amounts[s.id] ?? "").trim() !== "")
-        .map((s) => ({
-          tenant_id: tenant!.id,
-          student_id: s.id,
-          track_id: trackId,
-          record_date: date,
-          amount: Number(amounts[s.id] ?? "0"),
-          notes: (notes[s.id] ?? "").trim() || null,
-        }));
+        .filter((s) => isCompleteRange(dayRanges[s.id] ?? emptyRange))
+        .map((s) => {
+          const v = dayRanges[s.id]!;
+          return {
+            tenant_id: tenant!.id,
+            student_id: s.id,
+            track_id: trackId,
+            circle_id: circleId,
+            record_date: date,
+            amount: rangePages(v) ?? 0,
+            notes: (notes[s.id] ?? "").trim() || null,
+            ...rangeColumns(v),
+          };
+        });
       if (!rows.length) return;
       const { error } = await supabase.from("progress_records").upsert(rows, {
         onConflict: "student_id,track_id,record_date",
@@ -217,7 +276,9 @@ function ProgressPage() {
     );
   }
 
-  const activeCircles = circlesQuery.data ?? [];
+  const categoryLabel = selected?.tracks?.category
+    ? trackCategoryLabel(selected.tracks.category)
+    : null;
 
   return (
     <AppShell
@@ -231,127 +292,113 @@ function ProgressPage() {
       <div className="space-y-6">
         <section className="surface-panel grid gap-4 p-6 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <Label>الحلقة</Label>
-            <Select value={circleId} onValueChange={(v) => { setCircleId(v); }}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختاري حلقة" />
-              </SelectTrigger>
-              <SelectContent>
-                {activeCircles.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.tracks?.name ? ` — ${c.tracks.name}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>حلقتي</Label>
+            {visibleCircles.length > 1 ? (
+              <Select value={circleId} onValueChange={setCircleId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختاري حلقة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {visibleCircles.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                      {c.tracks?.name ? ` — ${c.tracks.name}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-base font-semibold">
+                {selected ? selected.name : "لم تُسنَد إليكِ حلقة بعد"}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
-              {selected?.tracks?.category ? `الفئة: ${selected.tracks.category}` : ""}
-              {!selected ? "اختاري حلقة لعرض طالباتها ومسارها." : ""}
+              {selected
+                ? `المسار: ${selected.tracks?.name ?? "—"}${categoryLabel ? ` — ${categoryLabel}` : ""}`
+                : "تواصلي مع قائدة المقرأة لربط حلقتك بكِ."}
             </p>
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="date">اليوم</Label>
             <Input id="date" type="date" value={date} max={todayISO()} onChange={(e) => setDate(e.target.value)} />
             <p className="text-xs text-muted-foreground">
-              {canRecord ? "أدخلي الأنصبة وسجّلي تقدم اليوم للطالبات." : "قراءة فقط — إعداد المقرأة لا يسمح لكِ بالإدخال."}
+              {canRecord
+                ? "اختاري السورة والآية، ويُحسب عدد الأوجه تلقائياً وفق مصحف المدينة."
+                : "قراءة فقط — إعداد المقرأة لا يسمح لكِ بالإدخال."}
             </p>
           </div>
         </section>
 
-        {!circleId ? (
+        {!selected ? (
           <EmptyState
             icon={<BookOpenText className="size-6" />}
-            title="اختاري حلقة للمتابعة"
-            description="حدّدي النصاب المستهدف لكل طالبة وسجّلي ما أتمّته اليوم من أوجه."
+            title="لا توجد حلقة مرتبطة بكِ"
+            description="بعد أن تربط القائدة الحلقة بحسابك ستظهر طالباتك ومسارهن هنا مباشرة."
+          />
+        ) : circleStudents.length === 0 ? (
+          <EmptyState
+            icon={<BookOpenText className="size-6" />}
+            title="لا توجد طالبات في هذه الحلقة"
+            description="تُضاف الطالبات إلى الحلقة من صفحة الطالبات."
           />
         ) : (
           <>
-            <div className="flex items-center justify-end gap-2">
-              {canRecord ? (
-                <Button variant="outline" onClick={() => { syncState(); }}>
-                  تحميل الحالة الحالية
-                </Button>
-              ) : null}
+            <div className="space-y-4">
+              {circleStudents.map((s) => {
+                const t = targetRanges[s.id] ?? emptyRange;
+                const d = dayRanges[s.id] ?? emptyRange;
+                const done = rangePages(d);
+                const target = rangePages(t);
+                return (
+                  <section key={s.id} className="surface-panel space-y-4 p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-base font-semibold">{s.full_name}</h3>
+                      <span className="text-xs text-muted-foreground">
+                        {done !== null && target !== null
+                          ? `${done} من ${target} أوجه`
+                          : categoryLabel ?? ""}
+                      </span>
+                    </div>
+                    <AyahRangePicker
+                      label="النصاب المستهدف"
+                      value={t}
+                      disabled={!canRecord}
+                      onChange={(v) => setTargetRanges({ ...targetRanges, [s.id]: v })}
+                    />
+                    <AyahRangePicker
+                      label="منجز اليوم"
+                      value={d}
+                      disabled={!canRecord}
+                      onChange={(v) => setDayRanges({ ...dayRanges, [s.id]: v })}
+                    />
+                    {canRecord ? (
+                      <div className="grid gap-1.5">
+                        <Label className="text-sm">ملاحظات</Label>
+                        <Input
+                          dir="rtl"
+                          value={notes[s.id] ?? ""}
+                          onChange={(e) => setNotes({ ...notes, [s.id]: e.target.value })}
+                          placeholder="ملاحظة اختيارية"
+                        />
+                      </div>
+                    ) : null}
+                  </section>
+                );
+              })}
             </div>
 
-            {circleStudents.length === 0 ? (
-              <EmptyState
-                icon={<BookOpenText className="size-6" />}
-                title="لا توجد طالبات في هذه الحلقة"
-                description="وزّعي الطالبات على الحلقة من صفحة الطالبات ثم عودي لتحديد الأنصبة والتقدم."
-              />
-            ) : (
-              <section className="surface-panel overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right">الطالبة</TableHead>
-                      <TableHead className="text-right">النصاب المستهدف (أوجه)</TableHead>
-                      <TableHead className="text-right">منجز اليوم (أوجه)</TableHead>
-                      {canRecord ? <TableHead className="text-right">ملاحظات</TableHead> : null}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {circleStudents.map((s) => (
-                      <TableRow key={s.id}>
-                        <TableCell className="font-medium">{s.full_name}</TableCell>
-                        <TableCell>
-                          {canRecord ? (
-                            <Input
-                              type="number"
-                              min={0}
-                              dir="ltr"
-                              className="w-24"
-                              value={targets[s.id] ?? ""}
-                              onChange={(e) => setTargets({ ...targets, [s.id]: e.target.value })}
-                            />
-                          ) : (
-                            <span className="tabular-nums">{targets[s.id] ?? "—"}</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {canRecord ? (
-                            <Input
-                              type="number"
-                              min={0}
-                              dir="ltr"
-                              className="w-24"
-                              value={amounts[s.id] ?? ""}
-                              onChange={(e) => setAmounts({ ...amounts, [s.id]: e.target.value })}
-                            />
-                          ) : (
-                            <span className="tabular-nums">{amounts[s.id] ?? "—"}</span>
-                          )}
-                        </TableCell>
-                        {canRecord ? (
-                          <TableCell>
-                            <Input
-                              dir="rtl"
-                              value={notes[s.id] ?? ""}
-                              onChange={(e) => setNotes({ ...notes, [s.id]: e.target.value })}
-                              placeholder="ملاحظة اختيارية"
-                            />
-                          </TableCell>
-                        ) : null}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {canRecord ? (
-                  <div className="flex flex-wrap justify-end gap-2 p-4">
-                    <Button variant="outline" onClick={() => saveQuotas.mutate()} disabled={saveQuotas.isPending}>
-                      {saveQuotas.isPending ? <Loader2 className="size-4 animate-spin" /> : <Target className="size-4" />}
-                      حفظ الأنصبة
-                    </Button>
-                    <Button onClick={() => saveProgress.mutate()} disabled={saveProgress.isPending}>
-                      {saveProgress.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-                      تسجيل تقدم اليوم
-                    </Button>
-                  </div>
-                ) : null}
-              </section>
-            )}
+            {canRecord ? (
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button variant="outline" onClick={() => saveQuotas.mutate()} disabled={saveQuotas.isPending}>
+                  {saveQuotas.isPending ? <Loader2 className="size-4 animate-spin" /> : <Target className="size-4" />}
+                  حفظ الأنصبة
+                </Button>
+                <Button onClick={() => saveProgress.mutate()} disabled={saveProgress.isPending}>
+                  {saveProgress.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                  تسجيل تقدم اليوم
+                </Button>
+              </div>
+            ) : null}
           </>
         )}
       </div>
