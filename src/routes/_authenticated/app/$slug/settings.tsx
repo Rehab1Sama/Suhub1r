@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TablesUpdate } from "@/integrations/supabase/types";
@@ -28,6 +28,7 @@ const MANAGER_ROLES = new Set(["tenant_admin", "admin_deputy"]);
 function TenantBrandingPage() {
   const { slug } = useParams({ from: "/_authenticated/app/$slug/settings" });
   const { roles, isPlatformOwner, loading } = useAuth();
+  const navigate = useNavigate();
   const qc = useQueryClient();
 
   const tenantQuery = useQuery({
@@ -141,6 +142,12 @@ function TenantBrandingPage() {
       registration_open: registration,
       students_mode: studentsMode,
       progress_entry_mode: progressMode,
+      ...(isPlatformOwner
+        ? {
+            slug: String(fd.get("slug") ?? "").trim().toLowerCase(),
+            custom_domain: String(fd.get("custom_domain") ?? "").trim().toLowerCase() || null,
+          }
+        : {}),
     });
   }
 
@@ -191,6 +198,42 @@ function TenantBrandingPage() {
               />
             </div>
           </div>
+          {isPlatformOwner ? (
+            <div className="grid gap-4 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:grid-cols-2">
+              <p className="text-xs font-medium text-primary sm:col-span-2">
+                إعدادات مالكة المنصة — تظهر لك فقط
+              </p>
+              <div className="grid gap-1.5">
+                <Label htmlFor="slug">الرابط المختصر</Label>
+                <Input
+                  id="slug"
+                  name="slug"
+                  dir="ltr"
+                  required
+                  maxLength={40}
+                  pattern="[a-z0-9-]+"
+                  defaultValue={tenant.slug}
+                />
+                <p className="text-xs text-muted-foreground" dir="ltr">
+                  /m/{tenant.slug}
+                </p>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="custom_domain">النطاق المخصص (اختياري)</Label>
+                <Input
+                  id="custom_domain"
+                  name="custom_domain"
+                  dir="ltr"
+                  maxLength={120}
+                  placeholder="maqraah.com"
+                  defaultValue={tenant.custom_domain ?? ""}
+                />
+                <p className="text-xs text-muted-foreground">
+                  يُربط بعد توجيه النطاق إلى المنصة.
+                </p>
+              </div>
+            </div>
+          ) : null}
           <div className="flex items-center justify-between rounded-xl border border-border p-4">
             <div>
               <p className="text-sm font-medium">فتح التسجيل للطالبات</p>
