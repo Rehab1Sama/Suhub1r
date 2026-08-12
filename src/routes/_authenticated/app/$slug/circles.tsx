@@ -43,6 +43,7 @@ type CircleEdit = {
   name: string;
   track_id: string;
   teacher_name: string;
+  teacher_user_id: string;
   schedule: ScheduleSlot[];
   notes: string;
 };
@@ -75,11 +76,31 @@ function CirclesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("circles")
-        .select("id, name, teacher_name, track_id, schedule, notes, status, tracks(name, category)")
+        .select("id, name, teacher_name, teacher_user_id, track_id, schedule, notes, status, tracks(name, category)")
         .eq("tenant_id", tenant!.id)
         .order("name");
       if (error) throw error;
       return data;
+    },
+  });
+
+  const staffQuery = useQuery({
+    queryKey: ["tenant-staff", tenant?.id],
+    enabled: canManage && !!tenant?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .eq("tenant_id", tenant!.id);
+      if (error) throw error;
+      const ids = [...new Set((data ?? []).map((r) => r.user_id))];
+      if (!ids.length) return [] as Array<{ id: string; name: string }>;
+      const { data: profiles, error: pErr } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", ids);
+      if (pErr) throw pErr;
+      return (profiles ?? []).map((p) => ({ id: p.id, name: p.full_name || p.email || "عضوة" }));
     },
   });
 
@@ -101,8 +122,9 @@ function CirclesPage() {
     mutationFn: async (values: CircleEdit) => {
       const payload = {
         name: values.name.trim(),
-        track_id: values.track_id || null,
+        track_id: values.track_id && values.track_id !== "__none" ? values.track_id : null,
         teacher_name: values.teacher_name.trim() || null,
+        teacher_user_id: values.teacher_user_id || null,
         schedule: values.schedule,
         notes: values.notes.trim() || null,
       };
@@ -160,7 +182,7 @@ function CirclesPage() {
   const trackMap = new Map((tracksQuery.data ?? []).map((t) => [t.id, t]));
 
   function openNew() {
-    setEdit({ id: null, name: "", track_id: "", teacher_name: "", schedule: [], notes: "" });
+    setEdit({ id: null, name: "", track_id: "", teacher_name: "", teacher_user_id: "", schedule: [], notes: "" });
   }
 
   return (
@@ -225,7 +247,12 @@ function CirclesPage() {
                         "—"
                       )}
                     </TableCell>
-                    <TableCell>{c.teacher_name || "—"}</TableCell>
+                    <TableCell>
+                      {c.teacher_name || "—"}
+                      {c.teacher_user_id ? (
+                        <span className="ms-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">مرتبطة</span>
+                      ) : null}
+                    </TableCell>
                     <TableCell>
                       {Array.isArray(c.schedule) && c.schedule.length ? (
                         <span className="flex flex-wrap gap-1">
@@ -252,6 +279,7 @@ function CirclesPage() {
                                 name: c.name,
                                 track_id: c.track_id ?? "",
                                 teacher_name: c.teacher_name ?? "",
+                                teacher_user_id: c.teacher_user_id ?? "",
                                 schedule: Array.isArray(c.schedule) ? (c.schedule as ScheduleSlot[]) : [],
                                 notes: c.notes ?? "",
                               })
@@ -324,6 +352,26 @@ function CirclesPage() {
                   placeholder="اسم المعلمة"
                   maxLength={120}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>حساب المعلمة (لتسجيل الأنصبة)</Label>
+                <Select
+                  value={edit.teacher_user_id || "__none"}
+                  onValueChange={(v) => setEdit({ ...edit, teacher_user_id: v === "__none" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="بدون ربط" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">بدون ربط</SelectItem>
+                    {staffQuery.data?.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  المعلمة المرتبطة ترى طالبات هذه الحلقة ومسارها مباشرة في صفحة الأنصبة.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label>المواعيد</Label>
