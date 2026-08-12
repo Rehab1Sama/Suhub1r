@@ -55,6 +55,7 @@ function TenantBrandingPage() {
     setPrimary(tenant.primary_color ?? "#2E7D8F");
     setAccent(tenant.accent_color ?? "#C9A227");
     setRegistration(tenant.registration_open);
+    setStudentsMode(tenant.students_mode === "accounts" ? "accounts" : "records");
   }, [tenant]);
 
   useTenantTheme(primary, accent);
