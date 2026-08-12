@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Plus, Search, ExternalLink, Loader2 } from "lucide-react";
+import { Plus, Search, ExternalLink, Loader2, Settings2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/layout/AppShell";
 import { platformNav } from "@/components/layout/nav";
@@ -281,6 +281,7 @@ function TenantsPage() {
                 <TableHead className="text-right">ينتهي في</TableHead>
                 <TableHead className="text-right">الحالة</TableHead>
                 <TableHead className="text-right">الميزات</TableHead>
+                <TableHead className="text-right">الهوية</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -320,6 +321,14 @@ function TenantsPage() {
                     </TableCell>
                     <TableCell>
                       <TenantFeaturesDialog tenantId={t.id} tenantName={t.name} />
+                    </TableCell>
+                    <TableCell>
+                      <Button asChild variant="outline" size="sm">
+                        <Link to="/app/$slug/settings" params={{ slug: t.slug }}>
+                          <Settings2 className="size-4" />
+                          الشعار والألوان
+                        </Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
