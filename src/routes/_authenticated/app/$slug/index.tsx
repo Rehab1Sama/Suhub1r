@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Users, GraduationCap, Layers, ShieldCheck, CalendarCheck, BookMarked } from "lucide-react";
+import { GraduationCap, CircleDot, Layers, Heart, CalendarCheck, BookMarked } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/layout/AppShell";
 import { tenantNav } from "@/components/layout/nav";
