@@ -68,5 +68,8 @@ export const WORKFLOW: WorkflowStep[] = [
   { title: "ابدئي التسجيل", text: "أضيفي المسارات والحلقات والطالبات، وابدئي تسجيل الحضور والوِرد." },
 ];
 
-export const CONTACT_EMAIL = "hello@suhub.app";
+export const CONTACT_EMAIL = "suhub1r@gmail.com";
+export const CONTACT_TELEGRAM = "@suhub1r";
+export const CONTACT_TELEGRAM_URL = "https://t.me/suhub1r";
+export const REPLY_TIME_TEXT = "الرد خلال ٤٨ ساعة";
 

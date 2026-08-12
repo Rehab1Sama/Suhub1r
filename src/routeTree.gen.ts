@@ -21,6 +21,7 @@ import { Route as MSlugRouteImport } from './routes/m.$slug'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform/index'
 import { Route as AuthenticatedPlatformTenantsRouteImport } from './routes/_authenticated/platform/tenants'
 import { Route as AuthenticatedAppSlugIndexRouteImport } from './routes/_authenticated/app/$slug/index'
+import { Route as AuthenticatedAppSlugSettingsRouteImport } from './routes/_authenticated/app/$slug/settings'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -84,6 +85,12 @@ const AuthenticatedAppSlugIndexRoute =
     path: '/app/$slug/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAppSlugSettingsRoute =
+  AuthenticatedAppSlugSettingsRouteImport.update({
+    id: '/app/$slug/settings',
+    path: '/app/$slug/settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/m/$slug': typeof MSlugRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +117,7 @@ export interface FileRoutesByTo {
   '/m/$slug': typeof MSlugRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
+  '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/app/$slug': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRoutesById {
@@ -124,6 +133,7 @@ export interface FileRoutesById {
   '/m/$slug': typeof MSlugRoute
   '/_authenticated/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/_authenticated/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/_authenticated/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRouteTypes {
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/m/$slug'
     | '/platform/tenants'
     | '/platform/'
+    | '/app/$slug/settings'
     | '/app/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/m/$slug'
     | '/platform/tenants'
     | '/platform'
+    | '/app/$slug/settings'
     | '/app/$slug'
   id:
     | '__root__'
@@ -166,6 +178,7 @@ export interface FileRouteTypes {
     | '/m/$slug'
     | '/_authenticated/platform/tenants'
     | '/_authenticated/platform/'
+    | '/_authenticated/app/$slug/settings'
     | '/_authenticated/app/$slug/'
   fileRoutesById: FileRoutesById
 }
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSlugIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/app/$slug/settings': {
+      id: '/_authenticated/app/$slug/settings'
+      path: '/app/$slug/settings'
+      fullPath: '/app/$slug/settings'
+      preLoaderRoute: typeof AuthenticatedAppSlugSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -273,6 +293,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPlatformTenantsRoute: typeof AuthenticatedPlatformTenantsRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
+  AuthenticatedAppSlugSettingsRoute: typeof AuthenticatedAppSlugSettingsRoute
   AuthenticatedAppSlugIndexRoute: typeof AuthenticatedAppSlugIndexRoute
 }
 
@@ -280,6 +301,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPlatformTenantsRoute: AuthenticatedPlatformTenantsRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
+  AuthenticatedAppSlugSettingsRoute: AuthenticatedAppSlugSettingsRoute,
   AuthenticatedAppSlugIndexRoute: AuthenticatedAppSlugIndexRoute,
 }
 

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, X, Moon, Sun, BookOpen } from "lucide-react";
+import { Menu, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { SITE_NAV } from "@/lib/site-content";
+import suhubLogo from "@/assets/suhub-logo.png";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -15,14 +16,19 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3.5">
         <Link to="/" className="flex items-center gap-2.5">
-          <span className="grid size-10 place-items-center rounded-xl gradient-primary text-primary-foreground">
-            <BookOpen className="size-5" />
-          </span>
+          <img
+            src={suhubLogo}
+            alt="شعار منصة سُحُب"
+            width={1024}
+            height={1024}
+            className="size-11 object-contain"
+          />
           <span className="leading-tight">
             <span className="block font-display text-xl font-bold">سُحُب</span>
             <span className="block text-[11px] text-muted-foreground">منصة إدارة المقارئ</span>
           </span>
         </Link>
+
 
         <nav className="hidden items-center gap-1 lg:flex">
           {SITE_NAV.map((item) => (
