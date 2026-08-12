@@ -69,13 +69,22 @@ function TenantBrandingPage() {
     mutationFn: async (values: TablesUpdate<"tenants">) => {
       const { error } = await supabase.from("tenants").update(values).eq("id", tenant!.id);
       if (error) throw error;
+      return values;
     },
-    onSuccess: () => {
+    onSuccess: (values) => {
       toast.success("تم حفظ هوية المقرأة");
       void qc.invalidateQueries({ queryKey: ["tenant", slug] });
       void qc.invalidateQueries({ queryKey: ["public-tenant", slug] });
+      void qc.invalidateQueries({ queryKey: ["platform-tenants"] });
+      const nextSlug = values.slug;
+      if (typeof nextSlug === "string" && nextSlug !== slug) {
+        void navigate({ to: "/app/$slug/settings", params: { slug: nextSlug } });
+      }
     },
-    onError: () => toast.error("تعذّر الحفظ — تأكدي من صلاحياتك"),
+    onError: (e: Error) =>
+      toast.error(
+        e.message.includes("duplicate") ? "هذا الرابط مستخدم لمقرأة أخرى" : "تعذّر الحفظ — تأكدي من صلاحياتك",
+      ),
   });
 
   async function handleLogo(file: File) {
