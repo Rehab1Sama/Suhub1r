@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/layout/AppShell";
 import { platformNav } from "@/components/layout/nav";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureCatalog, type FeatureRow } from "@/hooks/useTenantFeatures";
 import type { PlanRow } from "@/lib/pricing";
 
 export const Route = createFileRoute("/_authenticated/platform/plans")({
@@ -33,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/platform/plans")({
         content: "إضافة وتعديل باقات منصة سُحُب: الأسعار، السعر قبل التخفيض، الحدود، والمزايا.",
       },
       { property: "og:title", content: "إدارة الباقات — سُحُب" },
-      { property: "og:description", content: "تحكّمي في باقات المنصة وأسعارها ومزاياها." },
+      { property: "og:description", content: "تحكّمي في باقات المنصة وأسعارها وحدودها ومزاياها." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -56,6 +58,7 @@ type FormState = {
   compare_lifetime: string;
   currency: string;
   features: string;
+  featureKeys: string[];
   sort_order: string;
   is_active: boolean;
   is_featured: boolean;
@@ -77,13 +80,14 @@ const EMPTY: FormState = {
   compare_lifetime: "",
   currency: "ر.س",
   features: "",
+  featureKeys: [],
   sort_order: "10",
   is_active: true,
   is_featured: false,
   is_custom_priced: false,
 };
 
-function toForm(plan: PlanRow): FormState {
+function toForm(plan: PlanRow, featureKeys: string[]): FormState {
   return {
     code: plan.code,
     name_ar: plan.name_ar,
@@ -99,6 +103,7 @@ function toForm(plan: PlanRow): FormState {
     compare_lifetime: plan.compare_lifetime == null ? "" : String(plan.compare_lifetime),
     currency: plan.currency,
     features: ((plan.features as string[] | null) ?? []).join("\n"),
+    featureKeys,
     sort_order: String(plan.sort_order),
     is_active: plan.is_active,
     is_featured: plan.is_featured,
@@ -143,6 +148,10 @@ function toPayload(form: FormState) {
   };
 }
 
+function limitLabel(value: number) {
+  return value > 0 ? value.toLocaleString("ar-EG") : "بلا حدود";
+}
+
 function PlansAdminPage() {
   const { isPlatformOwner, loading } = useAuth();
   const qc = useQueryClient();
@@ -150,6 +159,7 @@ function PlansAdminPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [deleting, setDeleting] = useState<PlanRow | null>(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   const plansQuery = useQuery({
     queryKey: ["platform-plans"],
@@ -161,24 +171,73 @@ function PlansAdminPage() {
     },
   });
 
+  const catalogQuery = useFeatureCatalog();
+
+  const linksQuery = useQuery({
+    queryKey: ["platform-plan-features"],
+    enabled: isPlatformOwner,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plan_features")
+        .select("plan_id, feature_key, sort_order")
+        .order("sort_order");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const keysByPlan: Record<string, string[]> = {};
+  for (const link of linksQuery.data ?? []) {
+    (keysByPlan[link.plan_id] ??= []).push(link.feature_key);
+  }
+
+  function invalidateAll() {
+    for (const key of [
+      ["platform-plans"],
+      ["platform-plan-features"],
+      ["plans"],
+      ["plan-features"],
+      ["features"],
+    ]) {
+      void qc.invalidateQueries({ queryKey: key });
+    }
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       const payload = toPayload(form);
       if (!payload.code || !payload.name_ar) throw new Error("الرمز والاسم مطلوبان");
+
+      let planId = editing?.id;
       if (editing) {
         const { error } = await supabase.from("plans").update(payload).eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("plans").insert(payload);
+        const { data, error } = await supabase.from("plans").insert(payload).select("id").single();
         if (error) throw error;
+        planId = data.id;
+      }
+
+      // مزامنة مزايا الباقة
+      const { error: delError } = await supabase.from("plan_features").delete().eq("plan_id", planId!);
+      if (delError) throw delError;
+
+      const order = new Map((catalogQuery.data ?? []).map((f) => [f.key, f.sort_order]));
+      const rows = form.featureKeys.map((key) => ({
+        plan_id: planId!,
+        feature_key: key,
+        sort_order: order.get(key) ?? 0,
+      }));
+      if (rows.length > 0) {
+        const { error: insError } = await supabase.from("plan_features").insert(rows);
+        if (insError) throw insError;
       }
     },
     onSuccess: () => {
       toast.success(editing ? "تم تحديث الباقة" : "تمت إضافة الباقة");
       setOpen(false);
       setEditing(null);
-      void qc.invalidateQueries({ queryKey: ["platform-plans"] });
-      void qc.invalidateQueries({ queryKey: ["plans"] });
+      invalidateAll();
     },
     onError: (e: Error) => toast.error(e.message || "تعذّر الحفظ"),
   });
@@ -191,8 +250,7 @@ function PlansAdminPage() {
     onSuccess: () => {
       toast.success("تم حذف الباقة");
       setDeleting(null);
-      void qc.invalidateQueries({ queryKey: ["platform-plans"] });
-      void qc.invalidateQueries({ queryKey: ["plans"] });
+      invalidateAll();
     },
     onError: () => toast.error("تعذّر الحذف — قد تكون الباقة مرتبطة باشتراكات"),
   });
@@ -205,8 +263,17 @@ function PlansAdminPage() {
 
   function openEdit(plan: PlanRow) {
     setEditing(plan);
-    setForm(toForm(plan));
+    setForm(toForm(plan, keysByPlan[plan.id] ?? []));
     setOpen(true);
+  }
+
+  function toggleFeature(key: string, checked: boolean) {
+    setForm((prev) => ({
+      ...prev,
+      featureKeys: checked
+        ? [...prev.featureKeys, key]
+        : prev.featureKeys.filter((k) => k !== key),
+    }));
   }
 
   if (loading) return <LoadingBlock />;
@@ -224,6 +291,7 @@ function PlansAdminPage() {
   }
 
   const rows = plansQuery.data ?? [];
+  const catalog = catalogQuery.data ?? [];
 
   return (
     <AppShell
@@ -233,9 +301,14 @@ function PlansAdminPage() {
       title="الباقات والأسعار"
       crumbs={[{ label: "سُحُب", to: "/platform" }, { label: "الباقات والأسعار" }]}
       actions={
-        <Button onClick={openNew}>
-          <Plus className="size-4" /> باقة جديدة
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setCatalogOpen(true)}>
+            <ListChecks className="size-4" /> عناصر الباقات
+          </Button>
+          <Button onClick={openNew}>
+            <Plus className="size-4" /> باقة جديدة
+          </Button>
+        </div>
       }
     >
       {plansQuery.isLoading ? (
@@ -260,6 +333,7 @@ function PlansAdminPage() {
                 <TableHead className="text-right">سنوي</TableHead>
                 <TableHead className="text-right">شراء كامل</TableHead>
                 <TableHead className="text-right">الحدود</TableHead>
+                <TableHead className="text-right">المزايا</TableHead>
                 <TableHead className="text-right">الحالة</TableHead>
                 <TableHead className="text-right">إجراءات</TableHead>
               </TableRow>
@@ -296,7 +370,11 @@ function PlansAdminPage() {
                     </TableCell>
                   ))}
                   <TableCell className="text-xs text-muted-foreground">
-                    {p.max_students || "∞"} طالبة · {p.max_circles || "∞"} حلقة
+                    {limitLabel(p.max_students)} طالبة · {limitLabel(p.max_circles)} حلقة ·{" "}
+                    {limitLabel(p.max_teachers)} معلمة
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground tabular-nums">
+                    {(keysByPlan[p.id] ?? []).length.toLocaleString("ar-EG")} عنصر
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1.5">
@@ -446,42 +524,92 @@ function PlansAdminPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="p-st">حد الطالبات (0 = بلا حد)</Label>
-              <Input
-                id="p-st"
-                type="number"
-                min={0}
-                value={form.max_students}
-                onChange={(e) => setForm({ ...form, max_students: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="p-ci">حد الحلقات (0 = بلا حد)</Label>
-              <Input
-                id="p-ci"
-                type="number"
-                min={0}
-                value={form.max_circles}
-                onChange={(e) => setForm({ ...form, max_circles: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="p-te">حد المعلمات (0 = بلا حد)</Label>
-              <Input
-                id="p-te"
-                type="number"
-                min={0}
-                value={form.max_teachers}
-                onChange={(e) => setForm({ ...form, max_teachers: e.target.value })}
-              />
+            <div className="sm:col-span-2">
+              <p className="mb-2 text-sm font-medium">حدود الباقة</p>
+              <p className="mb-3 text-xs text-muted-foreground">
+                اكتبي 0 لجعل الحد بلا حدود. تُطبّق هذه الحدود على المقارئ المشتركة تلقائيًا.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="p-st">عدد الطالبات</Label>
+                  <Input
+                    id="p-st"
+                    type="number"
+                    min={0}
+                    value={form.max_students}
+                    onChange={(e) => setForm({ ...form, max_students: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="p-ci">عدد الحلقات / المقارئ</Label>
+                  <Input
+                    id="p-ci"
+                    type="number"
+                    min={0}
+                    value={form.max_circles}
+                    onChange={(e) => setForm({ ...form, max_circles: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="p-te">عدد المعلمات</Label>
+                  <Input
+                    id="p-te"
+                    type="number"
+                    min={0}
+                    value={form.max_teachers}
+                    onChange={(e) => setForm({ ...form, max_teachers: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="p-feat">المزايا (ميزة في كل سطر)</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label>عناصر الباقة (من قائمة المزايا)</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setCatalogOpen(true)}
+                >
+                  <Plus className="size-4" /> عنصر جديد
+                </Button>
+              </div>
+              <div className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border p-2">
+                {catalog.length === 0 ? (
+                  <p className="p-3 text-sm text-muted-foreground">
+                    لا توجد عناصر بعد — أضيفيها من «عنصر جديد».
+                  </p>
+                ) : (
+                  catalog.map((f) => (
+                    <label
+                      key={f.key}
+                      className="flex cursor-pointer items-start gap-3 rounded-lg p-2.5 hover:bg-muted/60"
+                    >
+                      <Checkbox
+                        checked={form.featureKeys.includes(f.key)}
+                        onCheckedChange={(v) => toggleFeature(f.key, v === true)}
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">{f.name_ar}</span>
+                        {f.description_ar ? (
+                          <span className="block text-xs text-muted-foreground">
+                            {f.description_ar}
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="p-feat">نقاط إضافية مكتوبة يدويًا (سطر لكل نقطة)</Label>
               <Textarea
                 id="p-feat"
-                rows={5}
+                rows={4}
+                placeholder="مثال: حتى 80 طالبة"
                 value={form.features}
                 onChange={(e) => setForm({ ...form, features: e.target.value })}
               />
@@ -521,6 +649,13 @@ function PlansAdminPage() {
         </DialogContent>
       </Dialog>
 
+      <FeatureCatalogDialog
+        open={catalogOpen}
+        onOpenChange={setCatalogOpen}
+        catalog={catalog}
+        onChanged={invalidateAll}
+      />
+
       <Dialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <DialogContent dir="rtl">
           <DialogHeader>
@@ -544,5 +679,186 @@ function PlansAdminPage() {
         </DialogContent>
       </Dialog>
     </AppShell>
+  );
+}
+
+type FeatureForm = { key: string; name_ar: string; description_ar: string; sort_order: string };
+
+const EMPTY_FEATURE: FeatureForm = { key: "", name_ar: "", description_ar: "", sort_order: "100" };
+
+function FeatureCatalogDialog({
+  open,
+  onOpenChange,
+  catalog,
+  onChanged,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  catalog: FeatureRow[];
+  onChanged: () => void;
+}) {
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [form, setForm] = useState<FeatureForm>(EMPTY_FEATURE);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const name = form.name_ar.trim();
+      if (!name) throw new Error("اسم العنصر مطلوب");
+      const payload = {
+        name_ar: name,
+        description_ar: form.description_ar.trim() || null,
+        sort_order: num(form.sort_order),
+      };
+      if (editingKey) {
+        const { error } = await supabase.from("features").update(payload).eq("key", editingKey);
+        if (error) throw error;
+      } else {
+        const key =
+          form.key.trim() ||
+          `feature_${Math.random().toString(36).slice(2, 8)}`;
+        const { error } = await supabase
+          .from("features")
+          .insert({ ...payload, key, default_enabled: false });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success(editingKey ? "تم تحديث العنصر" : "تمت إضافة العنصر");
+      setEditingKey(null);
+      setForm(EMPTY_FEATURE);
+      onChanged();
+    },
+    onError: (e: Error) => toast.error(e.message || "تعذّر الحفظ"),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (key: string) => {
+      const { error } = await supabase.from("features").delete().eq("key", key);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("تم حذف العنصر");
+      onChanged();
+    },
+    onError: () => toast.error("تعذّر الحذف — العنصر مستخدم في إعدادات مقرأة"),
+  });
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        onOpenChange(v);
+        if (!v) {
+          setEditingKey(null);
+          setForm(EMPTY_FEATURE);
+        }
+      }}
+    >
+      <DialogContent dir="rtl" className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>عناصر الباقات</DialogTitle>
+          <DialogDescription>
+            هذه القائمة تُستخدم في تكوين الباقات وفي تفعيل المزايا لكل مقرأة.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 rounded-xl border border-border p-4">
+          <p className="text-sm font-medium">{editingKey ? "تعديل عنصر" : "إضافة عنصر جديد"}</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="f-name">اسم العنصر</Label>
+              <Input
+                id="f-name"
+                value={form.name_ar}
+                onChange={(e) => setForm({ ...form, name_ar: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="f-sort">الترتيب</Label>
+              <Input
+                id="f-sort"
+                type="number"
+                value={form.sort_order}
+                onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
+              />
+            </div>
+            {editingKey ? null : (
+              <div className="space-y-2">
+                <Label htmlFor="f-key">الرمز (اختياري)</Label>
+                <Input
+                  id="f-key"
+                  dir="ltr"
+                  placeholder="auto"
+                  value={form.key}
+                  onChange={(e) => setForm({ ...form, key: e.target.value })}
+                />
+              </div>
+            )}
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="f-desc">وصف مختصر</Label>
+              <Input
+                id="f-desc"
+                value={form.description_ar}
+                onChange={(e) => setForm({ ...form, description_ar: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending}>
+              {save.isPending ? <Loader2 className="size-4 animate-spin" /> : editingKey ? "تحديث" : "إضافة"}
+            </Button>
+            {editingKey ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setEditingKey(null);
+                  setForm(EMPTY_FEATURE);
+                }}
+              >
+                إلغاء
+              </Button>
+            ) : null}
+          </div>
+        </div>
+
+        <ul className="divide-y divide-border rounded-xl border border-border">
+          {catalog.length === 0 ? (
+            <li className="p-4 text-sm text-muted-foreground">لا توجد عناصر بعد.</li>
+          ) : (
+            catalog.map((f) => (
+              <li key={f.key} className="flex items-center justify-between gap-3 p-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{f.name_ar}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {f.description_ar ?? f.key}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setEditingKey(f.key);
+                      setForm({
+                        key: f.key,
+                        name_ar: f.name_ar,
+                        description_ar: f.description_ar ?? "",
+                        sort_order: String(f.sort_order),
+                      });
+                    }}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => remove.mutate(f.key)}>
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
+      </DialogContent>
+    </Dialog>
   );
 }

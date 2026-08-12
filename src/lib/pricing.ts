@@ -59,3 +59,22 @@ export function planDiscountPercent(plan: PlanRow, period: BillingPeriod): numbe
   if (!before) return null;
   return Math.round((1 - planPrice(plan, period) / before) * 100);
 }
+
+/** نسبة التوفير عند الدفع السنوي مقارنة بالشهري×12 */
+export function planYearlySavingsPercent(plan: PlanRow): number | null {
+  if (plan.is_custom_priced) return null;
+  const monthlyTotal = Number(plan.price_monthly) * 12;
+  const yearly = Number(plan.price_yearly);
+  if (!monthlyTotal || !yearly || yearly >= monthlyTotal) return null;
+  return Math.round((1 - yearly / monthlyTotal) * 100);
+}
+
+/** حدود الباقة كعناصر جاهزة للعرض (0 = بلا حدود) */
+export function planLimits(plan: PlanRow): { label: string; value: string }[] {
+  const fmt = (n: number) => (n > 0 ? n.toLocaleString("ar-EG") : "بلا حدود");
+  return [
+    { label: "طالبة", value: fmt(plan.max_students) },
+    { label: "حلقة", value: fmt(plan.max_circles) },
+    { label: "معلمة", value: fmt(plan.max_teachers) },
+  ];
+}
