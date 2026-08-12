@@ -132,16 +132,32 @@ function TenantDashboard() {
         )}
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <EmptyState
-            icon={<CalendarCheck className="size-6" />}
-            title="الحضور اليومي"
-            description="سيتم تفعيل تسجيل الحضور والسجل التاريخي في المرحلة القادمة."
-          />
-          <EmptyState
-            icon={<BookMarked className="size-6" />}
-            title="الإنجاز القرآني"
-            description="الحفظ الجديد والمراجعة القريبة والبعيدة والتلاوة — قريبًا."
-          />
+          <Link
+            to="/app/$slug/progress"
+            params={{ slug }}
+            className="surface-panel group flex items-start justify-between gap-4 p-6 transition-colors hover:border-primary/50"
+          >
+            <div>
+              <h3 className="font-display text-lg font-bold">الأنصبة والتقدم</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                حدّدي النصاب المستهدف لكل طالبة وسجّلي إنجازها اليومي من الحفظ والمراجعة والتلاوة.
+              </p>
+            </div>
+            <BookMarked className="size-6 shrink-0 text-primary transition-transform group-hover:scale-110" />
+          </Link>
+          <Link
+            to="/app/$slug/reports"
+            params={{ slug }}
+            className="surface-panel group flex items-start justify-between gap-4 p-6 transition-colors hover:border-primary/50"
+          >
+            <div>
+              <h3 className="font-display text-lg font-bold">التقارير والإحصائيات</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                تابع أوجه الحفظ والغياب لكل مسار وللمقرأة، وصدّري التقارير إلى إكسل.
+              </p>
+            </div>
+            <CalendarCheck className="size-6 shrink-0 text-primary transition-transform group-hover:scale-110" />
+          </Link>
         </div>
       </div>
     </AppShell>
