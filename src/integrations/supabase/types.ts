@@ -14,6 +14,67 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          circle_id: string
+          created_at: string
+          entered_by: string | null
+          id: string
+          notes: string | null
+          record_date: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          circle_id: string
+          created_at?: string
+          entered_by?: string | null
+          id?: string
+          notes?: string | null
+          record_date?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          circle_id?: string
+          created_at?: string
+          entered_by?: string | null
+          id?: string
+          notes?: string | null
+          record_date?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       circle_students: {
         Row: {
           circle_id: string
@@ -373,6 +434,125 @@ export type Database = {
         }
         Relationships: []
       }
+      progress_records: {
+        Row: {
+          amount: number
+          created_at: string
+          entered_by: string | null
+          id: string
+          notes: string | null
+          record_date: string
+          student_id: string
+          tenant_id: string
+          track_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          entered_by?: string | null
+          id?: string
+          notes?: string | null
+          record_date?: string
+          student_id: string
+          tenant_id: string
+          track_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          entered_by?: string | null
+          id?: string
+          notes?: string | null
+          record_date?: string
+          student_id?: string
+          tenant_id?: string
+          track_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_records_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_records_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotas: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          period: string
+          student_id: string
+          target_amount: number
+          tenant_id: string
+          track_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period?: string
+          student_id: string
+          target_amount?: number
+          tenant_id: string
+          track_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period?: string
+          student_id?: string
+          target_amount?: number
+          tenant_id?: string
+          track_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotas_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotas_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           created_at: string
@@ -530,6 +710,7 @@ export type Database = {
           logo_url: string | null
           name: string
           primary_color: string
+          progress_entry_mode: Database["public"]["Enums"]["tenant_progress_mode"]
           registration_open: boolean
           settings: Json
           short_description: string | null
@@ -548,6 +729,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           primary_color?: string
+          progress_entry_mode?: Database["public"]["Enums"]["tenant_progress_mode"]
           registration_open?: boolean
           settings?: Json
           short_description?: string | null
@@ -566,6 +748,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           primary_color?: string
+          progress_entry_mode?: Database["public"]["Enums"]["tenant_progress_mode"]
           registration_open?: boolean
           settings?: Json
           short_description?: string | null
@@ -663,6 +846,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_record_academic: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_tenant_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -695,6 +882,7 @@ export type Database = {
         | "supervisor"
         | "teacher"
         | "student"
+      attendance_status: "present" | "absent" | "excused"
       billing_period: "monthly" | "yearly" | "lifetime"
       request_status: "new" | "contacted" | "approved" | "rejected"
       subscription_status:
@@ -703,6 +891,7 @@ export type Database = {
         | "past_due"
         | "canceled"
         | "expired"
+      tenant_progress_mode: "teacher" | "supervisor" | "both"
       tenant_status: "active" | "suspended" | "pending"
       tenant_students_mode: "records" | "accounts"
       track_category:
@@ -848,6 +1037,7 @@ export const Constants = {
         "teacher",
         "student",
       ],
+      attendance_status: ["present", "absent", "excused"],
       billing_period: ["monthly", "yearly", "lifetime"],
       request_status: ["new", "contacted", "approved", "rejected"],
       subscription_status: [
@@ -857,6 +1047,7 @@ export const Constants = {
         "canceled",
         "expired",
       ],
+      tenant_progress_mode: ["teacher", "supervisor", "both"],
       tenant_status: ["active", "suspended", "pending"],
       tenant_students_mode: ["records", "accounts"],
       track_category: [
