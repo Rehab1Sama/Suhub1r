@@ -59,6 +59,7 @@ function TenantBrandingPage() {
     setAccent(tenant.accent_color ?? "#C9A227");
     setRegistration(tenant.registration_open);
     setStudentsMode(tenant.students_mode === "accounts" ? "accounts" : "records");
+    setProgressMode(tenant.progress_entry_mode ?? "both");
   }, [tenant]);
 
   useTenantTheme(primary, accent);
