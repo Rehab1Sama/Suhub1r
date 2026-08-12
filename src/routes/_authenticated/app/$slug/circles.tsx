@@ -1,0 +1,396 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { AppShell } from "@/components/layout/AppShell";
+import { tenantNav } from "@/components/layout/nav";
+import { LoadingBlock, EmptyState } from "@/components/ui-blocks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useTenantContext } from "@/hooks/useTenantContext";
+import { useTenantTheme } from "@/hooks/useTenantTheme";
+import { trackCategoryLabel } from "@/lib/track-categories";
+import type { CircleRow, ScheduleSlot } from "@/lib/types";
+
+export const Route = createFileRoute("/_authenticated/app/$slug/circles")({
+  head: () => ({
+    meta: [
+      { title: "الحلقات — سُحُب" },
+      { name: "description", content: "إدارة حلقات المقرأة ومعلماتها ومواعيدها والطالبات المسجلات فيها." },
+      { property: "og:title", content: "الحلقات — سُحُب" },
+      { property: "og:description", content: "إدارة حلقات المقرأة على منصة سُحُب." },
+    ],
+  }),
+  component: CirclesPage,
+});
+
+type CircleEdit = {
+  id: string | null;
+  name: string;
+  track_id: string;
+  teacher_name: string;
+  schedule: ScheduleSlot[];
+  notes: string;
+};
+
+function CirclesPage() {
+  const { tenant, canManage, canRead, loading } = useTenantContext();
+  const qc = useQueryClient();
+  const [edit, setEdit] = useState<CircleEdit | null>(null);
+
+  useTenantTheme(tenant?.primary_color ?? null, tenant?.accent_color ?? null);
+
+  const tracksQuery = useQuery({
+    queryKey: ["tracks", tenant?.id],
+    enabled: canRead && !!tenant?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tracks")
+        .select("id, name, category, age_group")
+        .eq("tenant_id", tenant!.id)
+        .eq("status", "active")
+        .order("sort_order");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const circlesQuery = useQuery({
+    queryKey: ["circles", tenant?.id],
+    enabled: canRead && !!tenant?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("circles")
+        .select("id, name, teacher_name, track_id, schedule, notes, status, tracks(name, category)")
+        .eq("tenant_id", tenant!.id)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const studentCountsQuery = useQuery({
+    queryKey: ["circle-student-counts", tenant?.id],
+    enabled: canRead && !!tenant?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("circle_students")
+        .select("circle_id");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      for (const row of data ?? []) counts[row.circle_id] = (counts[row.circle_id] ?? 0) + 1;
+      return counts;
+    },
+  });
+
+  const save = useMutation({
+    mutationFn: async (values: CircleEdit) => {
+      const payload = {
+        name: values.name.trim(),
+        track_id: values.track_id || null,
+        teacher_name: values.teacher_name.trim() || null,
+        schedule: values.schedule,
+        notes: values.notes.trim() || null,
+      };
+      if (values.id) {
+        const { error } = await supabase.from("circles").update(payload).eq("id", values.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("circles").insert({ ...payload, tenant_id: tenant!.id });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("تم حفظ الحلقة");
+      setEdit(null);
+      void qc.invalidateQueries({ queryKey: ["circles"] });
+      void qc.invalidateQueries({ queryKey: ["tenant-stats"] });
+    },
+    onError: () => toast.error("تعذّر الحفظ"),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("circles").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("تم حذف الحلقة");
+      void qc.invalidateQueries({ queryKey: ["circles"] });
+      void qc.invalidateQueries({ queryKey: ["circle-student-counts"] });
+      void qc.invalidateQueries({ queryKey: ["tenant-stats"] });
+    },
+    onError: () => toast.error("تعذّر حذف الحلقة"),
+  });
+
+  if (loading) return <LoadingBlock />;
+
+  if (!tenant || !canRead) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-5">
+        <EmptyState
+          title={tenant ? "لا تملكين صلاحية الوصول لهذه المقرأة" : "المقرأة غير موجودة"}
+          description="تأكدي من الرابط أو تواصلي مع إدارة المقرأة."
+          action={
+            <Button asChild>
+              <Link to="/dashboard">العودة للوحتي</Link>
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  const rows = circlesQuery.data ?? [];
+  const counts = studentCountsQuery.data ?? {};
+  const trackMap = new Map((tracksQuery.data ?? []).map((t) => [t.id, t]));
+
+  function openNew() {
+    setEdit({ id: null, name: "", track_id: "", teacher_name: "", schedule: [], notes: "" });
+  }
+
+  return (
+    <AppShell
+      brandName={tenant.name}
+      brandSubtitle="الحلقات"
+      logoUrl={tenant.logo_url}
+      nav={tenantNav(tenant.slug)}
+      title="الحلقات"
+      crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "الحلقات" }]}
+      actions={
+        canManage ? (
+          <Button size="sm" onClick={openNew}>
+            <Plus className="size-4" />
+            حلقة جديدة
+          </Button>
+        ) : undefined
+      }
+    >
+      {circlesQuery.isLoading ? (
+        <LoadingBlock />
+      ) : rows.length === 0 ? (
+        <EmptyState
+          icon={<Plus className="size-6" />}
+          title="لا توجد حلقات بعد"
+          description="أنشئي أول حلقة واربطيها بمسار، وحدّدي معلمتها ومواعيدها."
+          action={canManage ? <Button onClick={openNew}>إنشاء أول حلقة</Button> : undefined}
+        />
+      ) : (
+        <div className="surface-panel overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-right">الحلقة</TableHead>
+                <TableHead className="text-right">المسار</TableHead>
+                <TableHead className="text-right">المعلمة</TableHead>
+                <TableHead className="text-right">المواعيد</TableHead>
+                <TableHead className="text-right">الطالبات</TableHead>
+                {canManage ? <TableHead className="text-right">إجراءات</TableHead> : null}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((c) => {
+                const track = c.track_id ? trackMap.get(c.track_id) : null;
+                return (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-medium">
+                      {c.name}
+                      {c.notes ? (
+                        <p className="max-w-xs truncate text-xs text-muted-foreground">{c.notes}</p>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      {track ? (
+                        <span className="text-sm">
+                          {track.name}
+                          <span className="ms-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">
+                            {trackCategoryLabel(track.category)}
+                          </span>
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell>{c.teacher_name || "—"}</TableCell>
+                    <TableCell>
+                      {Array.isArray(c.schedule) && c.schedule.length ? (
+                        <span className="flex flex-wrap gap-1">
+                          {(c.schedule as ScheduleSlot[]).map((s, i) => (
+                            <span key={i} className="rounded-full bg-muted px-2 py-0.5 text-xs">
+                              {s.day} {s.time}
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell className="tabular-nums">{counts[c.id] ?? 0}</TableCell>
+                    {canManage ? (
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              setEdit({
+                                id: c.id,
+                                name: c.name,
+                                track_id: c.track_id ?? "",
+                                teacher_name: c.teacher_name ?? "",
+                                schedule: Array.isArray(c.schedule) ? (c.schedule as ScheduleSlot[]) : [],
+                                notes: c.notes ?? "",
+                              })
+                            }
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive"
+                            onClick={() => {
+                              if (window.confirm(`حذف الحلقة «${c.name}»؟`)) remove.mutate(c.id);
+                            }}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    ) : null}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle>{edit?.id ? "تعديل الحلقة" : "حلقة جديدة"}</DialogTitle>
+            <DialogDescription>حدّدي اسم الحلقة والمسار والمعلمة والمواعيد.</DialogDescription>
+          </DialogHeader>
+          {edit ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="c-name">اسم الحلقة</Label>
+                <Input
+                  id="c-name"
+                  value={edit.name}
+                  onChange={(e) => setEdit({ ...edit, name: e.target.value })}
+                  placeholder="مثال: سراج ١"
+                  required
+                  maxLength={120}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>المسار</Label>
+                <Select value={edit.track_id} onValueChange={(v) => setEdit({ ...edit, track_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="بدون مسار" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">بدون مسار</SelectItem>
+                    {tracksQuery.data?.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name} — {trackCategoryLabel(t.category)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="c-teacher">المعلمة</Label>
+                <Input
+                  id="c-teacher"
+                  value={edit.teacher_name}
+                  onChange={(e) => setEdit({ ...edit, teacher_name: e.target.value })}
+                  placeholder="اسم المعلمة"
+                  maxLength={120}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>المواعيد</Label>
+                {edit.schedule.map((slot, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <Input
+                      value={slot.day}
+                      placeholder="اليوم"
+                      onChange={(e) => {
+                        const s = [...edit.schedule];
+                        s[i] = { ...s[i]!, day: e.target.value };
+                        setEdit({ ...edit, schedule: s });
+                      }}
+                      maxLength={40}
+                    />
+                    <Input
+                      value={slot.time}
+                      placeholder="الوقت"
+                      onChange={(e) => {
+                        const s = [...edit.schedule];
+                        s[i] = { ...s[i]!, time: e.target.value };
+                        setEdit({ ...edit, schedule: s });
+                      }}
+                      maxLength={40}
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="shrink-0 text-destructive"
+                      onClick={() => setEdit({ ...edit, schedule: edit.schedule.filter((_, j) => j !== i) })}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEdit({ ...edit, schedule: [...edit.schedule, { day: "", time: "" }] })}
+                >
+                  <Plus className="size-4" />
+                  إضافة موعد
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="c-notes">ملاحظات</Label>
+                <Textarea
+                  id="c-notes"
+                  rows={2}
+                  value={edit.notes}
+                  onChange={(e) => setEdit({ ...edit, notes: e.target.value })}
+                  maxLength={300}
+                />
+              </div>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button
+              onClick={() => edit && save.mutate(edit)}
+              disabled={save.isPending || !edit?.name.trim()}
+            >
+              {save.isPending ? <Loader2 className="size-4 animate-spin" /> : "حفظ"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AppShell>
+  );
+}
