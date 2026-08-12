@@ -50,6 +50,7 @@ function TenantBrandingPage() {
   const [accent, setAccent] = useState("#C9A227");
   const [registration, setRegistration] = useState(false);
   const [studentsMode, setStudentsMode] = useState<"records" | "accounts">("records");
+  const [progressMode, setProgressMode] = useState<TenantProgressMode>("both");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
