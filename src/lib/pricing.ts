@@ -37,3 +37,25 @@ export function planPriceLabel(
   if (value === 0) return { amount: "مجانًا", suffix: null };
   return { amount: `${value.toLocaleString("ar-EG")} ${plan.currency}`, suffix: SUFFIX[period] };
 }
+
+/** السعر قبل التخفيض (يُعرض مشطوبًا) — يُهمل إن لم يكن أكبر من السعر الحالي */
+export function planComparePrice(plan: PlanRow, period: BillingPeriod): number | null {
+  if (plan.is_custom_priced) return null;
+  const raw =
+    period === "yearly"
+      ? plan.compare_yearly
+      : period === "lifetime"
+        ? plan.compare_lifetime
+        : plan.compare_monthly;
+  if (raw == null) return null;
+  const value = Number(raw);
+  const current = planPrice(plan, period);
+  return value > current && current > 0 ? value : null;
+}
+
+/** نسبة التخفيض المئوية */
+export function planDiscountPercent(plan: PlanRow, period: BillingPeriod): number | null {
+  const before = planComparePrice(plan, period);
+  if (!before) return null;
+  return Math.round((1 - planPrice(plan, period) / before) * 100);
+}
