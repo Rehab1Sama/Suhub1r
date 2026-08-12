@@ -245,7 +245,7 @@ function ReportsPage() {
   const [exporting, setExporting] = useState<string | null>(null);
 
   async function runExport(kind: string) {
-    if (!d) return;
+    if (!d || !tenant) return;
     setExporting(kind);
     try {
       if (kind === "report") {
@@ -265,13 +265,7 @@ function ReportsPage() {
       } else if (kind === "students") {
         await exportStudentsExcel({ madrasa: tenant.name, rows: studentsExportQuery.data ?? [] });
       } else {
-        const rows = (staffQuery.data ?? []).map((r) => ({
-          name: r.profiles?.full_name ?? r.users?.email ?? "—",
-          email: r.users?.email ?? "—",
-          role: r.role,
-          volunteer: r.is_volunteer,
-        }));
-        await exportVolunteersExcel({ madrasa: tenant.name, rows });
+        await exportVolunteersExcel({ madrasa: tenant.name, rows: staffQuery.data ?? [] });
       }
     } finally {
       setExporting(null);
