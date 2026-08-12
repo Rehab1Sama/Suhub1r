@@ -615,6 +615,9 @@ export type Database = {
       plans: {
         Row: {
           code: string
+          compare_lifetime: number | null
+          compare_monthly: number | null
+          compare_yearly: number | null
           created_at: string
           currency: string
           description_ar: string | null
@@ -635,6 +638,9 @@ export type Database = {
         }
         Insert: {
           code: string
+          compare_lifetime?: number | null
+          compare_monthly?: number | null
+          compare_yearly?: number | null
           created_at?: string
           currency?: string
           description_ar?: string | null
@@ -655,6 +661,9 @@ export type Database = {
         }
         Update: {
           code?: string
+          compare_lifetime?: number | null
+          compare_monthly?: number | null
+          compare_yearly?: number | null
           created_at?: string
           currency?: string
           description_ar?: string | null
