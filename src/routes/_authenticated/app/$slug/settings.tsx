@@ -227,6 +227,32 @@ function TenantBrandingPage() {
               </label>
             </div>
           </div>
+          <div className="space-y-2 rounded-xl border border-border p-4">
+            <Label>من يدخل الأنصبة والتقدم والحضور؟</Label>
+            <p className="text-xs text-muted-foreground">
+              تحدّد المقرأة مَن يمكنه تسجيل الأنصبة والتقدم اليومي والحضور.
+            </p>
+            <div className="grid gap-2">
+              {PROGRESS_MODE_OPTIONS.map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex cursor-pointer items-start gap-2 rounded-lg border border-border p-3 text-sm"
+                >
+                  <input
+                    type="radio"
+                    name="progress_mode"
+                    checked={progressMode === opt.value}
+                    onChange={() => setProgressMode(opt.value)}
+                    className="mt-1 size-4"
+                  />
+                  <span>
+                    <span className="block font-medium">{opt.title}</span>
+                    <span className="block text-xs text-muted-foreground">{opt.hint}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
           <Button type="submit" disabled={save.isPending}>
             {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
             حفظ التغييرات
