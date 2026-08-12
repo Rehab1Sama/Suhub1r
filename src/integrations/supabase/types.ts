@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      features: {
+        Row: {
+          created_at: string
+          default_enabled: boolean
+          description_ar: string | null
+          id: string
+          key: string
+          name_ar: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_enabled?: boolean
+          description_ar?: string | null
+          id?: string
+          key: string
+          name_ar: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_enabled?: boolean
+          description_ar?: string | null
+          id?: string
+          key?: string
+          name_ar?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plan_requests: {
         Row: {
           billing_period: Database["public"]["Enums"]["billing_period"]
@@ -241,6 +274,51 @@ export type Database = {
           },
         ]
       }
+      tenant_features: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feature_key: string
+          id: string
+          notes: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          feature_key: string
+          id?: string
+          notes?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feature_key?: string
+          id?: string
+          notes?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_features_feature_key_fkey"
+            columns: ["feature_key"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "tenant_features_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           accent_color: string
@@ -350,6 +428,10 @@ export type Database = {
         Returns: boolean
       }
       my_tenant_ids: { Args: never; Returns: string[] }
+      tenant_has_feature: {
+        Args: { _feature_key: string; _tenant_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
