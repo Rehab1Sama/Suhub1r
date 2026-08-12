@@ -17,6 +17,7 @@ import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as RolesRouteImport } from './routes/roles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as MSlugRouteImport } from './routes/m.$slug'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform/index'
 import { Route as AuthenticatedPlatformRequestsRouteImport } from './routes/_authenticated/platform/requests'
@@ -63,6 +64,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MSlugRoute = MSlugRouteImport.update({
   id: '/m/$slug',
   path: '/m/$slug',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/plans': typeof PlansRoute
   '/roles': typeof RolesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/plans': typeof PlansRoute
   '/roles': typeof RolesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/plans': typeof PlansRoute
   '/roles': typeof RolesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/_authenticated/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/_authenticated/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/plans'
     | '/roles'
     | '/dashboard'
+    | '/invite/$token'
     | '/m/$slug'
     | '/platform/requests'
     | '/platform/tenants'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/plans'
     | '/roles'
     | '/dashboard'
+    | '/invite/$token'
     | '/m/$slug'
     | '/platform/requests'
     | '/platform/tenants'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/plans'
     | '/roles'
     | '/_authenticated/dashboard'
+    | '/invite/$token'
     | '/m/$slug'
     | '/_authenticated/platform/requests'
     | '/_authenticated/platform/tenants'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   FeaturesRoute: typeof FeaturesRoute
   PlansRoute: typeof PlansRoute
   RolesRoute: typeof RolesRoute
+  InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
 }
 
@@ -263,6 +276,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/m/$slug': {
       id: '/m/$slug'
@@ -338,6 +358,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturesRoute: FeaturesRoute,
   PlansRoute: PlansRoute,
   RolesRoute: RolesRoute,
+  InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
 }
 export const routeTree = rootRouteImport
