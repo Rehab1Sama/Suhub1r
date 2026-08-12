@@ -126,6 +126,7 @@ function TenantBrandingPage() {
       primary_color: primary,
       accent_color: accent,
       registration_open: registration,
+      students_mode: studentsMode,
     });
   }
 
