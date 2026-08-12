@@ -39,7 +39,7 @@ async function downloadWorkbook(filename: string, build: (wb: ExcelJS.Workbook) 
 
 function wbSheet(wb: ExcelJS.Workbook, name: string) {
   const ws = wb.addWorksheet(name);
-  ws.views = [{ rightToLeft: true } as ExcelJS.WorksheetViewNormal];
+  ws.views = [{ rightToLeft: true } as unknown as ExcelJS.WorksheetViewNormal];
   return ws;
 }
 
