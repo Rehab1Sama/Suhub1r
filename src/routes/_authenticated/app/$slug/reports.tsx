@@ -176,12 +176,23 @@ function ReportsPage() {
     queryKey: ["staff-export", tenant?.id],
     enabled: canRead && !!tenant?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: roles, error } = await supabase
         .from("user_roles")
-        .select("user_id, role, is_volunteer, users(id, email), profiles(id, full_name)")
+        .select("user_id, role, is_volunteer")
         .eq("tenant_id", tenant!.id);
       if (error) throw error;
-      return data;
+      const ids = (roles ?? []).map((r) => r.user_id).filter(Boolean);
+      const { data: profiles } =
+        ids.length > 0
+          ? await supabase.from("profiles").select("id, full_name, email").in("id", ids)
+          : { data: [] as { id: string; full_name: string | null; email: string | null }[] };
+      const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return (roles ?? []).map((r) => ({
+        name: byId.get(r.user_id)?.full_name ?? "—",
+        email: byId.get(r.user_id)?.email ?? "—",
+        role: r.role,
+        volunteer: r.is_volunteer,
+      }));
     },
   });
 
