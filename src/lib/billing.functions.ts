@@ -138,7 +138,8 @@ export const manageSubscription = createServerFn({ method: "POST" })
     if (!sub) throw new Error("الاشتراك غير موجود");
 
     const now = new Date();
-    const patch: Record<string, unknown> = {};
+    type SubPatch = Database["public"]["Tables"]["subscriptions"]["Update"];
+    const patch: SubPatch = {};
 
     if (data.action === "extend") {
       const base =
@@ -179,9 +180,11 @@ export const manageSubscription = createServerFn({ method: "POST" })
     if (updErr) throw updErr;
 
     if (sub.tenant_id) {
-      const nextStatus = patch.status === "canceled" ? "suspended" : patch.status ? "active" : null;
+      const nextStatus =
+        patch.status === "canceled" ? "suspended" : patch.status ? "active" : null;
       if (nextStatus) await supabaseAdmin.from("tenants").update({ status: nextStatus }).eq("id", sub.tenant_id);
     }
+
     return { ok: true };
   });
 
