@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TenantFeaturesDialog } from "@/components/platform/TenantFeaturesDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { TENANT_STATUS_LABELS, SUBSCRIPTION_STATUS_LABELS } from "@/lib/roles";
 import { slugify } from "@/lib/tenant";
@@ -279,6 +280,7 @@ function TenantsPage() {
                 <TableHead className="text-right">الاشتراك</TableHead>
                 <TableHead className="text-right">ينتهي في</TableHead>
                 <TableHead className="text-right">الحالة</TableHead>
+                <TableHead className="text-right">الميزات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -315,6 +317,9 @@ function TenantsPage() {
                           {TENANT_STATUS_LABELS[t.status] ?? t.status}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <TenantFeaturesDialog tenantId={t.id} tenantName={t.name} />
                     </TableCell>
                   </TableRow>
                 );
