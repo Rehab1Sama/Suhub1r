@@ -30,6 +30,7 @@ import { Route as AuthenticatedAppSlugProgressRouteImport } from './routes/_auth
 import { Route as AuthenticatedAppSlugReportsRouteImport } from './routes/_authenticated/app/$slug/reports'
 import { Route as AuthenticatedAppSlugSettingsRouteImport } from './routes/_authenticated/app/$slug/settings'
 import { Route as AuthenticatedAppSlugStudentsRouteImport } from './routes/_authenticated/app/$slug/students'
+import { Route as AuthenticatedAppSlugSubscriptionRouteImport } from './routes/_authenticated/app/$slug/subscription'
 import { Route as AuthenticatedAppSlugTracksRouteImport } from './routes/_authenticated/app/$slug/tracks'
 import { Route as AuthenticatedAppSlugVolunteersRouteImport } from './routes/_authenticated/app/$slug/volunteers'
 import { Route as ApiPublicWebhooksPaymentsRouteImport } from './routes/api/public/webhooks/payments'
@@ -149,6 +150,12 @@ const AuthenticatedAppSlugStudentsRoute =
     path: '/app/$slug/students',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAppSlugSubscriptionRoute =
+  AuthenticatedAppSlugSubscriptionRouteImport.update({
+    id: '/app/$slug/subscription',
+    path: '/app/$slug/subscription',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAppSlugTracksRoute =
   AuthenticatedAppSlugTracksRouteImport.update({
     id: '/app/$slug/tracks',
@@ -188,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
   '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
+  '/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
   '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
   '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
@@ -213,6 +221,7 @@ export interface FileRoutesByTo {
   '/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
   '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
+  '/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
   '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
   '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
@@ -240,6 +249,7 @@ export interface FileRoutesById {
   '/_authenticated/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
   '/_authenticated/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/_authenticated/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
+  '/_authenticated/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
   '/_authenticated/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
   '/_authenticated/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/app/$slug/reports'
     | '/app/$slug/settings'
     | '/app/$slug/students'
+    | '/app/$slug/subscription'
     | '/app/$slug/tracks'
     | '/app/$slug/volunteers'
     | '/api/public/webhooks/payments'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/app/$slug/reports'
     | '/app/$slug/settings'
     | '/app/$slug/students'
+    | '/app/$slug/subscription'
     | '/app/$slug/tracks'
     | '/app/$slug/volunteers'
     | '/api/public/webhooks/payments'
@@ -318,6 +330,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/$slug/reports'
     | '/_authenticated/app/$slug/settings'
     | '/_authenticated/app/$slug/students'
+    | '/_authenticated/app/$slug/subscription'
     | '/_authenticated/app/$slug/tracks'
     | '/_authenticated/app/$slug/volunteers'
     | '/api/public/webhooks/payments'
@@ -486,6 +499,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSlugStudentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/app/$slug/subscription': {
+      id: '/_authenticated/app/$slug/subscription'
+      path: '/app/$slug/subscription'
+      fullPath: '/app/$slug/subscription'
+      preLoaderRoute: typeof AuthenticatedAppSlugSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app/$slug/tracks': {
       id: '/_authenticated/app/$slug/tracks'
       path: '/app/$slug/tracks'
@@ -522,6 +542,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppSlugReportsRoute: typeof AuthenticatedAppSlugReportsRoute
   AuthenticatedAppSlugSettingsRoute: typeof AuthenticatedAppSlugSettingsRoute
   AuthenticatedAppSlugStudentsRoute: typeof AuthenticatedAppSlugStudentsRoute
+  AuthenticatedAppSlugSubscriptionRoute: typeof AuthenticatedAppSlugSubscriptionRoute
   AuthenticatedAppSlugTracksRoute: typeof AuthenticatedAppSlugTracksRoute
   AuthenticatedAppSlugVolunteersRoute: typeof AuthenticatedAppSlugVolunteersRoute
   AuthenticatedAppSlugIndexRoute: typeof AuthenticatedAppSlugIndexRoute
@@ -539,6 +560,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppSlugReportsRoute: AuthenticatedAppSlugReportsRoute,
   AuthenticatedAppSlugSettingsRoute: AuthenticatedAppSlugSettingsRoute,
   AuthenticatedAppSlugStudentsRoute: AuthenticatedAppSlugStudentsRoute,
+  AuthenticatedAppSlugSubscriptionRoute: AuthenticatedAppSlugSubscriptionRoute,
   AuthenticatedAppSlugTracksRoute: AuthenticatedAppSlugTracksRoute,
   AuthenticatedAppSlugVolunteersRoute: AuthenticatedAppSlugVolunteersRoute,
   AuthenticatedAppSlugIndexRoute: AuthenticatedAppSlugIndexRoute,
