@@ -552,6 +552,45 @@ export type Database = {
           },
         ]
       }
+      plan_features: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          plan_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          plan_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          plan_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_features_feature_key_fkey"
+            columns: ["feature_key"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "plan_features_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_requests: {
         Row: {
           billing_period: Database["public"]["Enums"]["billing_period"]
