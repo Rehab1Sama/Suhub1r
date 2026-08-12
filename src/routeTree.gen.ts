@@ -27,6 +27,7 @@ import { Route as AuthenticatedAppSlugCirclesRouteImport } from './routes/_authe
 import { Route as AuthenticatedAppSlugSettingsRouteImport } from './routes/_authenticated/app/$slug/settings'
 import { Route as AuthenticatedAppSlugStudentsRouteImport } from './routes/_authenticated/app/$slug/students'
 import { Route as AuthenticatedAppSlugTracksRouteImport } from './routes/_authenticated/app/$slug/tracks'
+import { Route as AuthenticatedAppSlugVolunteersRouteImport } from './routes/_authenticated/app/$slug/volunteers'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -125,6 +126,12 @@ const AuthenticatedAppSlugTracksRoute =
     path: '/app/$slug/tracks',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAppSlugVolunteersRoute =
+  AuthenticatedAppSlugVolunteersRouteImport.update({
+    id: '/app/$slug/volunteers',
+    path: '/app/$slug/volunteers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
   '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -162,6 +170,7 @@ export interface FileRoutesByTo {
   '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
   '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/app/$slug': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRoutesById {
@@ -183,6 +192,7 @@ export interface FileRoutesById {
   '/_authenticated/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
   '/_authenticated/app/$slug/students': typeof AuthenticatedAppSlugStudentsRoute
   '/_authenticated/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/_authenticated/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
   '/_authenticated/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
 }
 export interface FileRouteTypes {
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/app/$slug/settings'
     | '/app/$slug/students'
     | '/app/$slug/tracks'
+    | '/app/$slug/volunteers'
     | '/app/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/app/$slug/settings'
     | '/app/$slug/students'
     | '/app/$slug/tracks'
+    | '/app/$slug/volunteers'
     | '/app/$slug'
   id:
     | '__root__'
@@ -243,6 +255,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/$slug/settings'
     | '/_authenticated/app/$slug/students'
     | '/_authenticated/app/$slug/tracks'
+    | '/_authenticated/app/$slug/volunteers'
     | '/_authenticated/app/$slug/'
   fileRoutesById: FileRoutesById
 }
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSlugTracksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/app/$slug/volunteers': {
+      id: '/_authenticated/app/$slug/volunteers'
+      path: '/app/$slug/volunteers'
+      fullPath: '/app/$slug/volunteers'
+      preLoaderRoute: typeof AuthenticatedAppSlugVolunteersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -398,6 +418,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppSlugSettingsRoute: typeof AuthenticatedAppSlugSettingsRoute
   AuthenticatedAppSlugStudentsRoute: typeof AuthenticatedAppSlugStudentsRoute
   AuthenticatedAppSlugTracksRoute: typeof AuthenticatedAppSlugTracksRoute
+  AuthenticatedAppSlugVolunteersRoute: typeof AuthenticatedAppSlugVolunteersRoute
   AuthenticatedAppSlugIndexRoute: typeof AuthenticatedAppSlugIndexRoute
 }
 
@@ -410,6 +431,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppSlugSettingsRoute: AuthenticatedAppSlugSettingsRoute,
   AuthenticatedAppSlugStudentsRoute: AuthenticatedAppSlugStudentsRoute,
   AuthenticatedAppSlugTracksRoute: AuthenticatedAppSlugTracksRoute,
+  AuthenticatedAppSlugVolunteersRoute: AuthenticatedAppSlugVolunteersRoute,
   AuthenticatedAppSlugIndexRoute: AuthenticatedAppSlugIndexRoute,
 }
 
