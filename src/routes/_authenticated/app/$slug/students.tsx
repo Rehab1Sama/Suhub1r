@@ -114,6 +114,11 @@ function StudentsPage() {
         const { error } = await supabase.from("students").update(payload).eq("id", values.id);
         if (error) throw error;
       } else {
+        const { data: allowed } = await supabase.rpc("tenant_within_limit", {
+          _tenant_id: tenant!.id,
+          _kind: "students",
+        });
+        if (allowed === false) throw new Error("بلغتِ الحد الأقصى لعدد الطالبات في باقتك، رقّي الباقة للمتابعة");
         const { data, error } = await supabase
           .from("students")
           .insert({ ...payload, tenant_id: tenant!.id })
