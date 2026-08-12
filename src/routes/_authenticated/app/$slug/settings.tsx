@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { Loader2, Upload, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,7 +60,7 @@ function TenantBrandingPage() {
   const logoUrl = useTenantLogo(tenant?.logo_url);
 
   const save = useMutation({
-    mutationFn: async (values: Record<string, unknown>) => {
+    mutationFn: async (values: TablesUpdate<"tenants">) => {
       const { error } = await supabase.from("tenants").update(values).eq("id", tenant!.id);
       if (error) throw error;
     },
