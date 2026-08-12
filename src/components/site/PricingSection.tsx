@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import {
   BILLING_OPTIONS,
   planPriceLabel,
+  planComparePrice,
+  planDiscountPercent,
   type BillingPeriod,
   type PlanRow,
 } from "@/lib/pricing";
