@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      circle_students: {
+        Row: {
+          circle_id: string
+          created_at: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          circle_id: string
+          created_at?: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          circle_id?: string
+          created_at?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_students_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "circle_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          schedule: Json
+          status: string
+          teacher_name: string | null
+          tenant_id: string
+          track_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          schedule?: Json
+          status?: string
+          teacher_name?: string | null
+          tenant_id: string
+          track_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          schedule?: Json
+          status?: string
+          teacher_name?: string | null
+          tenant_id?: string
+          track_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "circles_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -283,6 +373,53 @@ export type Database = {
         }
         Relationships: []
       }
+      students: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          full_name: string
+          guardian_name: string | null
+          guardian_phone: string | null
+          id: string
+          notes: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          full_name: string
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -398,6 +535,7 @@ export type Database = {
           short_description: string | null
           slug: string
           status: Database["public"]["Enums"]["tenant_status"]
+          students_mode: Database["public"]["Enums"]["tenant_students_mode"]
           updated_at: string
         }
         Insert: {
@@ -415,6 +553,7 @@ export type Database = {
           short_description?: string | null
           slug: string
           status?: Database["public"]["Enums"]["tenant_status"]
+          students_mode?: Database["public"]["Enums"]["tenant_students_mode"]
           updated_at?: string
         }
         Update: {
@@ -432,14 +571,63 @@ export type Database = {
           short_description?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["tenant_status"]
+          students_mode?: Database["public"]["Enums"]["tenant_students_mode"]
           updated_at?: string
         }
         Relationships: []
+      }
+      tracks: {
+        Row: {
+          age_group: string | null
+          category: Database["public"]["Enums"]["track_category"]
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          sort_order: number
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          age_group?: string | null
+          category: Database["public"]["Enums"]["track_category"]
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          sort_order?: number
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          age_group?: string | null
+          category?: Database["public"]["Enums"]["track_category"]
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          sort_order?: number
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
           created_at: string
           id: string
+          is_volunteer: boolean
           role: Database["public"]["Enums"]["app_role"]
           tenant_id: string | null
           user_id: string
@@ -447,6 +635,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_volunteer?: boolean
           role: Database["public"]["Enums"]["app_role"]
           tenant_id?: string | null
           user_id: string
@@ -454,6 +643,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_volunteer?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           tenant_id?: string | null
           user_id?: string
@@ -514,6 +704,14 @@ export type Database = {
         | "canceled"
         | "expired"
       tenant_status: "active" | "suspended" | "pending"
+      tenant_students_mode: "records" | "accounts"
+      track_category:
+        | "hifz_new"
+        | "thabit_new"
+        | "review_general"
+        | "review_recent"
+        | "review_distant"
+        | "tilawa"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -660,6 +858,15 @@ export const Constants = {
         "expired",
       ],
       tenant_status: ["active", "suspended", "pending"],
+      tenant_students_mode: ["records", "accounts"],
+      track_category: [
+        "hifz_new",
+        "thabit_new",
+        "review_general",
+        "review_recent",
+        "review_distant",
+        "tilawa",
+      ],
     },
   },
 } as const
