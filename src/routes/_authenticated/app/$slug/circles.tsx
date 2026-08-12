@@ -132,6 +132,11 @@ function CirclesPage() {
         const { error } = await supabase.from("circles").update(payload).eq("id", values.id);
         if (error) throw error;
       } else {
+        const { data: allowed } = await supabase.rpc("tenant_within_limit", {
+          _tenant_id: tenant!.id,
+          _kind: "circles",
+        });
+        if (allowed === false) throw new Error("بلغتِ الحد الأقصى لعدد الحلقات في باقتك، رقّي الباقة للمتابعة");
         const { error } = await supabase.from("circles").insert({ ...payload, tenant_id: tenant!.id });
         if (error) throw error;
       }
@@ -142,7 +147,7 @@ function CirclesPage() {
       void qc.invalidateQueries({ queryKey: ["circles"] });
       void qc.invalidateQueries({ queryKey: ["tenant-stats"] });
     },
-    onError: () => toast.error("تعذّر الحفظ"),
+    onError: (e: Error) => toast.error(e.message || "تعذّر الحفظ"),
   });
 
   const remove = useMutation({

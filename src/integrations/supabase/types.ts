@@ -284,6 +284,274 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount: number
+          billing_period: Database["public"]["Enums"]["billing_period"]
+          created_at: string
+          currency: string
+          description: string | null
+          due_at: string | null
+          id: string
+          issued_at: string
+          notes: string | null
+          number: string
+          paid_at: string | null
+          payment_intent_id: string | null
+          period_end: string | null
+          period_start: string | null
+          plan_id: string | null
+          provider: string | null
+          provider_invoice_id: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          subscription_id: string | null
+          tax_amount: number
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          billing_period?: Database["public"]["Enums"]["billing_period"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          issued_at?: string
+          notes?: string | null
+          number?: string
+          paid_at?: string | null
+          payment_intent_id?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          plan_id?: string | null
+          provider?: string | null
+          provider_invoice_id?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subscription_id?: string | null
+          tax_amount?: number
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          billing_period?: Database["public"]["Enums"]["billing_period"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          issued_at?: string
+          notes?: string | null
+          number?: string
+          paid_at?: string | null
+          payment_intent_id?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          plan_id?: string | null
+          provider?: string | null
+          provider_invoice_id?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subscription_id?: string | null
+          tax_amount?: number
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_payment_intent_id_fkey"
+            columns: ["payment_intent_id"]
+            isOneToOne: false
+            referencedRelation: "payment_intents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_intents: {
+        Row: {
+          amount: number
+          billing_period: Database["public"]["Enums"]["billing_period"]
+          checkout_url: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          failure_reason: string | null
+          id: string
+          idempotency_key: string
+          metadata: Json
+          plan_id: string
+          plan_request_id: string | null
+          provider: string | null
+          provider_ref: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          billing_period: Database["public"]["Enums"]["billing_period"]
+          checkout_url?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          failure_reason?: string | null
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          plan_id: string
+          plan_request_id?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          billing_period?: Database["public"]["Enums"]["billing_period"]
+          checkout_url?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          failure_reason?: string | null
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          plan_id?: string
+          plan_request_id?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_intents_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_intents_plan_request_id_fkey"
+            columns: ["plan_request_id"]
+            isOneToOne: false
+            referencedRelation: "plan_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_intents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_webhook_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_id: string
+          event_type: string
+          id: string
+          invoice_id: string | null
+          payload: Json
+          payment_intent_id: string | null
+          processed_at: string | null
+          provider: string
+          signature_verified: boolean
+          status: Database["public"]["Enums"]["webhook_event_status"]
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          invoice_id?: string | null
+          payload?: Json
+          payment_intent_id?: string | null
+          processed_at?: string | null
+          provider: string
+          signature_verified?: boolean
+          status?: Database["public"]["Enums"]["webhook_event_status"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          invoice_id?: string | null
+          payload?: Json
+          payment_intent_id?: string | null
+          processed_at?: string | null
+          provider?: string
+          signature_verified?: boolean
+          status?: Database["public"]["Enums"]["webhook_event_status"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_webhook_events_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_webhook_events_payment_intent_id_fkey"
+            columns: ["payment_intent_id"]
+            isOneToOne: false
+            referencedRelation: "payment_intents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_requests: {
         Row: {
           billing_period: Database["public"]["Enums"]["billing_period"]
@@ -639,39 +907,69 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          amount: number
+          billing_period: Database["public"]["Enums"]["billing_period"]
+          cancel_at_period_end: boolean
+          canceled_at: string | null
           created_at: string
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
           expires_at: string | null
           id: string
           plan_id: string
           provider: string | null
+          provider_customer_id: string | null
           provider_ref: string | null
+          provider_subscription_id: string | null
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
           tenant_id: string
+          trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
+          amount?: number
+          billing_period?: Database["public"]["Enums"]["billing_period"]
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
           created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
           expires_at?: string | null
           id?: string
           plan_id: string
           provider?: string | null
+          provider_customer_id?: string | null
           provider_ref?: string | null
+          provider_subscription_id?: string | null
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
           tenant_id: string
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
+          amount?: number
+          billing_period?: Database["public"]["Enums"]["billing_period"]
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
           created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
           expires_at?: string | null
           id?: string
           plan_id?: string
           provider?: string | null
+          provider_customer_id?: string | null
           provider_ref?: string | null
+          provider_subscription_id?: string | null
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
           tenant_id?: string
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -905,8 +1203,39 @@ export type Database = {
         Returns: boolean
       }
       my_tenant_ids: { Args: never; Returns: string[] }
+      platform_revenue_monthly: {
+        Args: { _months?: number }
+        Returns: {
+          currency: string
+          invoice_count: number
+          month: string
+          paid_total: number
+        }[]
+      }
       tenant_has_feature: {
         Args: { _feature_key: string; _tenant_id: string }
+        Returns: boolean
+      }
+      tenant_plan_limits: {
+        Args: { _tenant_id: string }
+        Returns: {
+          max_circles: number
+          max_students: number
+          max_teachers: number
+          plan_id: string
+          plan_name: string
+        }[]
+      }
+      tenant_usage: {
+        Args: { _tenant_id: string }
+        Returns: {
+          circles: number
+          students: number
+          teachers: number
+        }[]
+      }
+      tenant_within_limit: {
+        Args: { _kind: string; _tenant_id: string }
         Returns: boolean
       }
     }
@@ -921,6 +1250,14 @@ export type Database = {
         | "student"
       attendance_status: "present" | "absent" | "excused"
       billing_period: "monthly" | "yearly" | "lifetime"
+      invoice_status: "draft" | "open" | "paid" | "void" | "refunded" | "failed"
+      payment_status:
+        | "pending"
+        | "processing"
+        | "succeeded"
+        | "failed"
+        | "canceled"
+        | "expired"
       request_status: "new" | "contacted" | "approved" | "rejected"
       subscription_status:
         | "trialing"
@@ -938,6 +1275,7 @@ export type Database = {
         | "review_recent"
         | "review_distant"
         | "tilawa"
+      webhook_event_status: "received" | "processed" | "ignored" | "error"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1076,6 +1414,15 @@ export const Constants = {
       ],
       attendance_status: ["present", "absent", "excused"],
       billing_period: ["monthly", "yearly", "lifetime"],
+      invoice_status: ["draft", "open", "paid", "void", "refunded", "failed"],
+      payment_status: [
+        "pending",
+        "processing",
+        "succeeded",
+        "failed",
+        "canceled",
+        "expired",
+      ],
       request_status: ["new", "contacted", "approved", "rejected"],
       subscription_status: [
         "trialing",
@@ -1095,6 +1442,7 @@ export const Constants = {
         "review_distant",
         "tilawa",
       ],
+      webhook_event_status: ["received", "processed", "ignored", "error"],
     },
   },
 } as const
