@@ -40,22 +40,32 @@ function TenantDashboard() {
     queryKey: ["tenant-stats", tenant?.id],
     enabled: !!tenant?.id,
     queryFn: async () => {
-      const roleCount = async (role: AppRole) => {
+      const countWhere = async (table: "tracks" | "circles" | "students" | "circle_students", status?: string) => {
+        let q = supabase.from(table).select("id", { count: "exact", head: true });
+        if (table === "tracks" || table === "circles" || table === "students") {
+          q = q.eq("tenant_id", tenant!.id);
+        }
+        if (status) q = q.eq("status", status);
+        const { count, error } = await q;
+        if (error) throw error;
+        return count ?? 0;
+      };
+      const countVolunteers = async () => {
         const { count, error } = await supabase
           .from("user_roles")
           .select("id", { count: "exact", head: true })
           .eq("tenant_id", tenant!.id)
-          .eq("role", role);
+          .eq("is_volunteer", true);
         if (error) throw error;
         return count ?? 0;
       };
-      const [students, teachers, supervisors, admins] = await Promise.all([
-        roleCount("student"),
-        roleCount("teacher"),
-        roleCount("supervisor"),
-        roleCount("tenant_admin"),
+      const [tracks, circles, students, volunteers] = await Promise.all([
+        countWhere("tracks", "active"),
+        countWhere("circles", "active"),
+        countWhere("students", "active"),
+        countVolunteers(),
       ]);
-      return { students, teachers, supervisors, admins };
+      return { tracks, circles, students, volunteers };
     },
   });
 
