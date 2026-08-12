@@ -47,6 +47,7 @@ function TenantBrandingPage() {
   const [primary, setPrimary] = useState("#2E7D8F");
   const [accent, setAccent] = useState("#C9A227");
   const [registration, setRegistration] = useState(false);
+  const [studentsMode, setStudentsMode] = useState<"records" | "accounts">("records");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
