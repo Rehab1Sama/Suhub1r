@@ -16,6 +16,8 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
 import { TENANT_LOGOS_BUCKET, useTenantLogo } from "@/lib/tenant-branding";
+import { PROGRESS_MODE_OPTIONS } from "@/lib/progress";
+import type { TenantProgressMode } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/settings")({
   component: TenantBrandingPage,
