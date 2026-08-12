@@ -77,6 +77,59 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          tenant_id: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          tenant_id?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          tenant_id?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_requests: {
         Row: {
           billing_period: Database["public"]["Enums"]["billing_period"]
@@ -88,6 +141,7 @@ export type Database = {
           phone: string | null
           plan_id: string | null
           status: Database["public"]["Enums"]["request_status"]
+          tenant_id: string | null
           tenant_name: string
           updated_at: string
         }
@@ -101,6 +155,7 @@ export type Database = {
           phone?: string | null
           plan_id?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          tenant_id?: string | null
           tenant_name: string
           updated_at?: string
         }
@@ -114,6 +169,7 @@ export type Database = {
           phone?: string | null
           plan_id?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          tenant_id?: string | null
           tenant_name?: string
           updated_at?: string
         }
@@ -123,6 +179,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
