@@ -250,7 +250,7 @@ function TracksPage() {
             <div className="space-y-2">
               <Label>الفئة (المنهج)</Label>
               <Select
-                value={edit?.category}
+                value={edit?.category ?? TRACK_CATEGORY_KEYS[0]}
                 onValueChange={(v) => setEdit((p) => (p ? { ...p, category: v } : p))}
               >
                 <SelectTrigger>
