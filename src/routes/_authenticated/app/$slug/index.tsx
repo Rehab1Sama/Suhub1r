@@ -8,7 +8,7 @@ import { StatCard, LoadingBlock, EmptyState } from "@/components/ui-blocks";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
-import { ROLE_LABELS, SUBSCRIPTION_STATUS_LABELS, type AppRole } from "@/lib/roles";
+import { ROLE_LABELS, SUBSCRIPTION_STATUS_LABELS } from "@/lib/roles";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/")({
   component: TenantDashboard,
