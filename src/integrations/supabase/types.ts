@@ -1145,6 +1145,7 @@ export type Database = {
       tracks: {
         Row: {
           age_group: string | null
+          categories: Database["public"]["Enums"]["track_category"][]
           category: Database["public"]["Enums"]["track_category"]
           created_at: string
           id: string
@@ -1157,6 +1158,7 @@ export type Database = {
         }
         Insert: {
           age_group?: string | null
+          categories?: Database["public"]["Enums"]["track_category"][]
           category: Database["public"]["Enums"]["track_category"]
           created_at?: string
           id?: string
@@ -1169,6 +1171,7 @@ export type Database = {
         }
         Update: {
           age_group?: string | null
+          categories?: Database["public"]["Enums"]["track_category"][]
           category?: Database["public"]["Enums"]["track_category"]
           created_at?: string
           id?: string
