@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useTenantContext } from "@/hooks/useTenantContext";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
-import { trackCategoryLabel } from "@/lib/track-categories";
+import { trackCategoriesLabel } from "@/lib/track-categories";
 import type { CircleRow, ScheduleSlot } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/circles")({
@@ -61,7 +61,7 @@ function CirclesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tracks")
-        .select("id, name, category, age_group")
+        .select("id, name, category, categories, age_group")
         .eq("tenant_id", tenant!.id)
         .eq("status", "active")
         .order("sort_order");
@@ -76,7 +76,7 @@ function CirclesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("circles")
-        .select("id, name, teacher_name, teacher_user_id, track_id, schedule, notes, status, tracks(name, category)")
+        .select("id, name, teacher_name, teacher_user_id, track_id, schedule, notes, status, tracks(name, category, categories)")
         .eq("tenant_id", tenant!.id)
         .order("name");
       if (error) throw error;
@@ -245,7 +245,7 @@ function CirclesPage() {
                         <span className="text-sm">
                           {track.name}
                           <span className="ms-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">
-                            {trackCategoryLabel(track.category)}
+                            {trackCategoriesLabel(track)}
                           </span>
                         </span>
                       ) : (
@@ -342,7 +342,7 @@ function CirclesPage() {
                     <SelectItem value="__none">بدون مسار</SelectItem>
                     {tracksQuery.data?.map((t) => (
                       <SelectItem key={t.id} value={t.id}>
-                        {t.name} — {trackCategoryLabel(t.category)}
+                        {t.name} — {trackCategoriesLabel(t)}
                       </SelectItem>
                     ))}
                   </SelectContent>
