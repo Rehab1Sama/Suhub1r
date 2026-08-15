@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoadingBlock, EmptyState } from "@/components/ui-blocks";
 import { Button } from "@/components/ui/button";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
+import { useTenantLogo } from "@/lib/tenant-branding";
 
 export const Route = createFileRoute("/m/$slug")({
   head: ({ params }) => ({
@@ -37,6 +38,7 @@ function TenantPublicPage() {
   });
 
   useTenantTheme(tenant?.primary_color ?? null, tenant?.accent_color ?? null);
+  const logoUrl = useTenantLogo(tenant?.logo_url);
 
   if (isLoading) return <LoadingBlock />;
 
@@ -62,10 +64,10 @@ function TenantPublicPage() {
   return (
     <main className="gradient-sky min-h-screen px-5 py-14">
       <div className="mx-auto max-w-3xl text-center">
-        {tenant.logo_url ? (
-          <img src={tenant.logo_url} alt={tenant.name} className="mx-auto size-20 rounded-2xl object-cover" />
+        {logoUrl ? (
+          <img src={logoUrl} alt={tenant.name} className="mx-auto size-20 rounded-2xl bg-card object-contain p-2 shadow-soft" />
         ) : (
-          <span className="mx-auto grid size-20 place-items-center rounded-2xl gradient-primary text-2xl font-bold text-primary-foreground">
+          <span className="mx-auto grid size-20 place-items-center rounded-2xl gradient-primary font-display text-2xl font-bold text-primary-foreground">
             {tenant.name.slice(0, 1)}
           </span>
         )}

@@ -1,0 +1,2 @@
+ALTER TABLE public.tracks ADD COLUMN IF NOT EXISTS categories public.track_category[] NOT NULL DEFAULT '{}';
+UPDATE public.tracks SET categories = ARRAY[category]::public.track_category[] WHERE cardinality(categories) = 0;
