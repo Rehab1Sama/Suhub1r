@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Pencil, Loader2 } from "lucide-react";
+import { Plus, Pencil, Loader2, Route as RouteIcon, Sparkles, Users2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/layout/AppShell";
 import { tenantNav } from "@/components/layout/nav";
@@ -20,18 +20,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useTenantContext } from "@/hooks/useTenantContext";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
-import { TRACK_CATEGORY_LABELS, TRACK_CATEGORY_KEYS, trackCategoryLabel } from "@/lib/track-categories";
+import { TRACK_CATEGORY_LABELS, TRACK_CATEGORY_KEYS, trackCategoryList } from "@/lib/track-categories";
 import type { TrackRow } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/tracks")({
   head: () => ({
     meta: [
       { title: "المسارات — سُحُب" },
-      { name: "description", content: "إدارة المسارات التي تضم حلقات المقرأة بنفس الفئة والفئة العمرية والتوجه." },
+      { name: "description", content: "إدارة المسارات التي تضم حلقات المقرأة بمناهجها وفئتها العمرية وتوجهها." },
       { property: "og:title", content: "المسارات — سُحُب" },
       { property: "og:description", content: "إدارة مسارات الحلقات في مقرأة على منصة سُحُب." },
     ],
@@ -42,10 +40,14 @@ export const Route = createFileRoute("/_authenticated/app/$slug/tracks")({
 type EditState = {
   id: string | null;
   name: string;
-  category: string;
+  categories: string[];
   age_group: string;
   notes: string;
 };
+
+function emptyEdit(): EditState {
+  return { id: null, name: "", categories: [TRACK_CATEGORY_KEYS[0]!], age_group: "", notes: "" };
+}
 
 function TracksPage() {
   const { tenant, canManage, canRead, loading } = useTenantContext();
@@ -60,7 +62,7 @@ function TracksPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tracks")
-        .select("id, name, category, age_group, notes, status, sort_order, created_at")
+        .select("id, name, category, categories, age_group, notes, status, sort_order, created_at")
         .eq("tenant_id", tenant!.id)
         .order("sort_order");
       if (error) throw error;
@@ -70,9 +72,13 @@ function TracksPage() {
 
   const save = useMutation({
     mutationFn: async (values: EditState) => {
+      const categories = TRACK_CATEGORY_KEYS.filter((k) =>
+        values.categories.includes(k),
+      ) as TrackRow["categories"];
       const payload = {
         name: values.name.trim(),
-        category: values.category as TrackRow["category"],
+        category: categories[0] as TrackRow["category"],
+        categories,
         age_group: values.age_group.trim() || null,
         notes: values.notes.trim() || null,
       };
@@ -125,6 +131,15 @@ function TracksPage() {
 
   const rows = tracksQuery.data ?? [];
 
+  function toggleCategory(key: string) {
+    setEdit((p) => {
+      if (!p) return p;
+      const has = p.categories.includes(key);
+      const next = has ? p.categories.filter((c) => c !== key) : [...p.categories, key];
+      return { ...p, categories: next };
+    });
+  }
+
   return (
     <AppShell
       brandName={tenant.name}
@@ -132,13 +147,11 @@ function TracksPage() {
       logoUrl={tenant.logo_url}
       nav={tenantNav(tenant.slug)}
       title="المسارات"
+      description="المسار يجمع حلقات بنفس الاسم والفئة العمرية والتوجه، ويمكن أن يضم أكثر من منهج معًا: حفظ جديد، تثبيت، مراجعة قريبة أو بعيدة، مراجعة عامة، وتلاوة."
       crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "المسارات" }]}
       actions={
         canManage ? (
-          <Button
-            size="sm"
-            onClick={() => setEdit({ id: null, name: "", category: TRACK_CATEGORY_KEYS[0]!, age_group: "", notes: "" })}
-          >
+          <Button size="sm" onClick={() => setEdit(emptyEdit())}>
             <Plus className="size-4" />
             مسار جديد
           </Button>
@@ -149,93 +162,105 @@ function TracksPage() {
         <LoadingBlock />
       ) : rows.length === 0 ? (
         <EmptyState
-          icon={<Plus className="size-6" />}
+          icon={<RouteIcon className="size-6" />}
           title="لا توجد مسارات بعد"
-          description="المسار اسم يضم عدة حلقات بنفس الفئة والعمر والتوجه، مثل مسار «سراج» الذي يضم سراج ١ و٢ للحفظ والمراجعة."
-          action={
-            canManage ? (
-              <Button
-                onClick={() =>
-                  setEdit({ id: null, name: "", category: TRACK_CATEGORY_KEYS[0]!, age_group: "", notes: "" })
-                }
-              >
-                إنشاء أول مسار
-              </Button>
-            ) : undefined
-          }
+          description="ابدئي بمسار واحد مثل «سراج»، واختاري له المناهج التي تسير عليها حلقاته."
+          action={canManage ? <Button onClick={() => setEdit(emptyEdit())}>إنشاء أول مسار</Button> : undefined}
         />
       ) : (
-        <div className="surface-panel overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-right">المسار</TableHead>
-                <TableHead className="text-right">الفئة</TableHead>
-                <TableHead className="text-right">الفئة العمرية</TableHead>
-                <TableHead className="text-right">الحالة</TableHead>
-                {canManage ? <TableHead className="text-right">إجراءات</TableHead> : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="font-medium">{t.name}</TableCell>
-                  <TableCell>
-                    <span className="rounded-full bg-primary-soft px-3 py-1 text-xs text-primary">
-                      {trackCategoryLabel(t.category)}
-                    </span>
-                  </TableCell>
-                  <TableCell>{t.age_group || "—"}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {canManage ? (
-                        <Switch
-                          checked={t.status === "active"}
-                          onCheckedChange={(checked) =>
-                            toggleStatus.mutate({ id: t.id, status: checked ? "active" : "inactive" })
-                          }
-                        />
-                      ) : null}
-                      <span className="text-xs text-muted-foreground">
-                        {t.status === "active" ? "نشط" : "متوقف"}
-                      </span>
-                    </div>
-                  </TableCell>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.map((t) => {
+            const cats = trackCategoryList(t);
+            const active = t.status === "active";
+            return (
+              <article
+                key={t.id}
+                className="surface-panel group relative flex flex-col gap-4 p-5 transition-shadow hover:shadow-lifted"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary">
+                    <RouteIcon className="size-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="truncate font-display text-lg font-bold">{t.name}</h2>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Users2 className="size-3.5" />
+                      {t.age_group || "كل الأعمار"}
+                    </p>
+                  </div>
                   {canManage ? (
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          setEdit({
-                            id: t.id,
-                            name: t.name,
-                            category: t.category,
-                            age_group: t.age_group ?? "",
-                            notes: t.notes ?? "",
-                          })
-                        }
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                    </TableCell>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label="تعديل المسار"
+                      className="opacity-70 transition-opacity group-hover:opacity-100"
+                      onClick={() =>
+                        setEdit({
+                          id: t.id,
+                          name: t.name,
+                          categories: cats.length > 0 ? trackKeysOf(t) : [TRACK_CATEGORY_KEYS[0]!],
+                          age_group: t.age_group ?? "",
+                          notes: t.notes ?? "",
+                        })
+                      }
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
                   ) : null}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {cats.map((label) => (
+                    <span
+                      key={label}
+                      className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-medium text-primary"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+
+                {t.notes ? (
+                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{t.notes}</p>
+                ) : null}
+
+                <div className="mt-auto flex items-center justify-between border-t border-border/70 pt-3">
+                  <span
+                    className={
+                      active
+                        ? "flex items-center gap-1.5 text-xs font-medium text-success"
+                        : "flex items-center gap-1.5 text-xs text-muted-foreground"
+                    }
+                  >
+                    <span
+                      className={`size-1.5 rounded-full ${active ? "bg-success" : "bg-muted-foreground/50"}`}
+                    />
+                    {active ? "نشط" : "متوقف"}
+                  </span>
+                  {canManage ? (
+                    <Switch
+                      checked={active}
+                      onCheckedChange={(checked) =>
+                        toggleStatus.mutate({ id: t.id, status: checked ? "active" : "inactive" })
+                      }
+                    />
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
 
       <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
-        <DialogContent dir="rtl">
+        <DialogContent dir="rtl" className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{edit?.id ? "تعديل المسار" : "مسار جديد"}</DialogTitle>
+            <DialogTitle className="font-display">{edit?.id ? "تعديل المسار" : "مسار جديد"}</DialogTitle>
             <DialogDescription>
-              المسار يجمع حلقات بنفس الاسم والفئة والعمر والتوجه، مثل مسار «سراج» بفئة الحفظ والمراجعة.
+              اختاري كل المناهج التي يسير عليها المسار — يمكن اختيار أكثر من منهج معًا.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="t-name">اسم المسار</Label>
               <Input
@@ -247,27 +272,45 @@ function TracksPage() {
                 maxLength={120}
               />
             </div>
+
             <div className="space-y-2">
-              <Label>الفئة (المنهج)</Label>
-              <Select
-                value={edit?.category ?? TRACK_CATEGORY_KEYS[0]!}
-                onValueChange={(v) => setEdit((p) => (p ? { ...p, category: v } : p))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TRACK_CATEGORY_KEYS.map((k) => (
-                    <SelectItem key={k} value={k}>
+              <Label className="flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-gold" />
+                مناهج المسار
+              </Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {TRACK_CATEGORY_KEYS.map((k) => {
+                  const checked = edit?.categories.includes(k) ?? false;
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => toggleCategory(k)}
+                      className={`flex items-center gap-2.5 rounded-xl border p-3 text-right text-sm transition-colors ${
+                        checked
+                          ? "border-primary bg-primary-soft text-primary font-medium"
+                          : "border-border hover:bg-accent"
+                      }`}
+                    >
+                      <span
+                        className={`grid size-4 shrink-0 place-items-center rounded-[5px] border ${
+                          checked ? "border-primary bg-primary" : "border-muted-foreground/40"
+                        }`}
+                      >
+                        {checked ? (
+                          <span className="size-1.5 rounded-[2px] bg-primary-foreground" />
+                        ) : null}
+                      </span>
                       {TRACK_CATEGORY_LABELS[k]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </button>
+                  );
+                })}
+              </div>
               <p className="text-xs text-muted-foreground">
-                القائدة تختار المنهج المناسب لمقرأتها، مثل حفظ جديد أو مراجعة قريبة أو تلاوة.
+                مثال: مسار «سراج» يمكن أن يشمل حفظ جديد + مراجعة قريبة + مراجعة بعيدة معًا.
               </p>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="t-age">الفئة العمرية</Label>
               <Input
@@ -292,7 +335,7 @@ function TracksPage() {
           <DialogFooter>
             <Button
               onClick={() => edit && save.mutate(edit)}
-              disabled={save.isPending || !edit?.name.trim()}
+              disabled={save.isPending || !edit?.name.trim() || (edit?.categories.length ?? 0) === 0}
             >
               {save.isPending ? <Loader2 className="size-4 animate-spin" /> : "حفظ"}
             </Button>
@@ -301,4 +344,11 @@ function TracksPage() {
       </Dialog>
     </AppShell>
   );
+}
+
+/** مفاتيح المناهج المخزّنة للمسار (مع دعم المسارات القديمة ذات المنهج الواحد) */
+function trackKeysOf(track: { category?: string | null; categories?: string[] | null }): string[] {
+  const list = track.categories && track.categories.length > 0 ? track.categories : [track.category ?? ""];
+  const filtered = TRACK_CATEGORY_KEYS.filter((k) => list.includes(k));
+  return filtered.length > 0 ? filtered : [TRACK_CATEGORY_KEYS[0]!];
 }
