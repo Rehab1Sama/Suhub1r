@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as PlansRouteImport } from './routes/plans'
@@ -48,6 +49,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -185,6 +191,7 @@ const ApiPublicWebhooksPaymentsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/features': typeof FeaturesRoute
   '/plans': typeof PlansRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/features': typeof FeaturesRoute
   '/plans': typeof PlansRoute
@@ -241,6 +249,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/features': typeof FeaturesRoute
   '/plans': typeof PlansRoute
@@ -270,6 +279,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/compare'
     | '/contact'
     | '/features'
     | '/plans'
@@ -297,6 +307,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/compare'
     | '/contact'
     | '/features'
     | '/plans'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/compare'
     | '/contact'
     | '/features'
     | '/plans'
@@ -354,6 +366,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CompareRoute: typeof CompareRoute
   ContactRoute: typeof ContactRoute
   FeaturesRoute: typeof FeaturesRoute
   PlansRoute: typeof PlansRoute
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -595,6 +615,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CompareRoute: CompareRoute,
   ContactRoute: ContactRoute,
   FeaturesRoute: FeaturesRoute,
   PlansRoute: PlansRoute,

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SectionHeading } from "@/components/site/Sections";
@@ -36,6 +36,14 @@ function PlansPage() {
           subtitle="اختاري نوع الدفع المناسب: شهري، سنوي بخصم، أو شراء كامل دفعة واحدة. والترقية متاحة في أي وقت."
         />
         <PricingSection />
+
+        <p className="mt-8 text-center text-sm text-muted-foreground">
+          تبغين مقارنة تفصيلية بين الباقات؟{" "}
+          <Link to="/compare" className="font-medium text-primary hover:underline">
+            جدول مقارنة الباقات
+          </Link>
+        </p>
+
 
         <div className="mt-20">
           <SectionHeading eyebrow="أسئلة متكررة" title="قبل أن تبدئي" />
