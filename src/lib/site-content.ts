@@ -5,6 +5,7 @@ export const SITE_NAV = [
   { label: "المميزات", to: "/features" },
   { label: "الأدوار", to: "/roles" },
   { label: "الأسعار", to: "/plans" },
+  { label: "مقارنة الباقات", to: "/compare" },
   { label: "تواصل", to: "/contact" },
 ] as const;
 
