@@ -37,6 +37,14 @@ function PlansPage() {
         />
         <PricingSection />
 
+        <p className="mt-8 text-center text-sm text-muted-foreground">
+          تبغين مقارنة تفصيلية بين الباقات؟{" "}
+          <Link to="/compare" className="font-medium text-primary hover:underline">
+            جدول مقارنة الباقات
+          </Link>
+        </p>
+
+
         <div className="mt-20">
           <SectionHeading eyebrow="أسئلة متكررة" title="قبل أن تبدئي" />
           <div className="mt-8 grid gap-4 md:grid-cols-2">
