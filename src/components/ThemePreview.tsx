@@ -3,7 +3,7 @@ import { TenantLogo } from "@/components/TenantLogo";
 
 type Props = {
   name: string;
-  logo?: string | null;
+  logo?: string | null | undefined;
   primary: string;
   accent: string;
 };
