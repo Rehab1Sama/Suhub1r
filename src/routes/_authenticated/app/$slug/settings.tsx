@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { toast } from "sonner";
-import { Loader2, Upload, Palette } from "lucide-react";
+import { Loader2, Upload, Palette, Eye } from "lucide-react";
+import { ThemePreview } from "@/components/ThemePreview";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/layout/AppShell";
 import { tenantNav } from "@/components/layout/nav";
@@ -312,6 +313,17 @@ function TenantBrandingPage() {
         </section>
 
         <aside className="grid gap-6">
+          <div className="surface-panel space-y-3 p-6">
+            <h2 className="flex items-center gap-2 font-display text-lg font-bold">
+              <Eye className="size-4 text-primary" />
+              معاينة الثيم
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              تتغيّر المعاينة فورًا مع تغيير الألوان أو الشعار، قبل الحفظ.
+            </p>
+            <ThemePreview name={tenant.name} logo={tenant.logo_url} primary={primary} accent={accent} />
+          </div>
+
           <div className="surface-panel space-y-3 p-6">
             <h2 className="flex items-center gap-2 font-display text-lg font-bold">
               <Upload className="size-4 text-primary" />
