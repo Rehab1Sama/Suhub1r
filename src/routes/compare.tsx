@@ -19,6 +19,7 @@ import {
   type PlanRow,
 } from "@/lib/pricing";
 import { PlanRequestDialog } from "@/components/site/PlanRequestDialog";
+import { CompareFaq } from "@/components/site/CompareFaq";
 
 export const Route = createFileRoute("/compare")({
   head: () => ({
