@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   name: string;
-  logo?: string | null;
+  logo?: string | null | undefined;
   className?: string;
 };
 
