@@ -11,6 +11,7 @@ import { LoadingBlock } from "@/components/ui-blocks";
 import { cn } from "@/lib/utils";
 import {
   BILLING_OPTIONS,
+  planPrice,
   planPriceLabel,
   planComparePrice,
   planDiscountPercent,
@@ -75,9 +76,7 @@ function PlanCtaButton({
   if (cta.kind === "trial") {
     return (
       <Button asChild size="sm" variant={variant} className={cn("w-full", className)}>
-        <Link to="/auth" search={{ mode: "signup" } as never}>
-          {cta.label}
-        </Link>
+        <Link to="/auth">{cta.label}</Link>
       </Button>
     );
   }
