@@ -83,13 +83,7 @@ function DashboardRouter() {
                 params={{ slug: t.slug }}
                 className="surface-panel flex items-center gap-3 p-4 transition-shadow hover:shadow-lifted"
               >
-                {t.logo_url ? (
-                  <img src={t.logo_url} alt={t.name} className="size-12 rounded-xl object-cover" />
-                ) : (
-                  <span className="grid size-12 place-items-center rounded-xl bg-primary-soft font-bold text-primary">
-                    {t.name.slice(0, 1)}
-                  </span>
-                )}
+                <TenantLogo name={t.name} logo={t.logo_url} className="size-12" />
                 <div className="min-w-0">
                   <p className="truncate font-medium">{t.name}</p>
                   <p className="truncate text-xs text-muted-foreground">{myRoles.join("، ")}</p>
