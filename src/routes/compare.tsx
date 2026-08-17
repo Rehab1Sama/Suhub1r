@@ -311,21 +311,107 @@ function ComparePage() {
                         plan.is_featured && "bg-primary-soft/60",
                       )}
                     >
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        variant={plan.is_featured ? "default" : "outline"}
-                        onClick={() => setSelected(plan)}
-                      >
-                        {plan.is_custom_priced ? "تواصلي معنا" : "اطلبيها"}
-                      </Button>
+                      <PlanCtaButton plan={plan} period={period} onRequest={setSelected} />
                     </td>
                   ))}
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         )}
+
+        {/* بطاقات الجوال */}
+        {!isLoading && data ? (
+          <div className="mt-8 grid gap-4 md:hidden">
+            {data.plans.map((plan) => {
+              const price = planPriceLabel(plan, period);
+              const before = planComparePrice(plan, period);
+              const discount = planDiscountPercent(plan, period);
+              return (
+                <div
+                  key={plan.id}
+                  className={cn(
+                    "rounded-2xl border border-border bg-card p-5",
+                    plan.is_featured && "border-primary/40 bg-primary-soft/40 shadow-sm",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-display text-lg font-bold">{plan.name_ar}</div>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        {plan.description_ar}
+                      </p>
+                    </div>
+                    {plan.is_featured ? (
+                      <span className="shrink-0 rounded-full bg-gold px-2.5 py-0.5 text-[11px] font-medium text-gold-foreground">
+                        الأكثر اختيارًا
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-baseline gap-2">
+                    <span className="text-xl font-bold tabular-nums">{price.amount}</span>
+                    {price.suffix ? (
+                      <span className="text-xs text-muted-foreground">{price.suffix}</span>
+                    ) : null}
+                    {before ? (
+                      <>
+                        <span className="text-xs text-muted-foreground line-through tabular-nums">
+                          {before.toLocaleString("ar-EG")}
+                        </span>
+                        {discount ? (
+                          <span className="rounded-full bg-gold px-1.5 py-0.5 text-[11px] font-medium text-gold-foreground">
+                            −{discount.toLocaleString("ar-EG")}%
+                          </span>
+                        ) : null}
+                      </>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    {(
+                      [
+                        { label: "طالبة", icon: Users, value: plan.max_students },
+                        { label: "حلقة", icon: BookOpen, value: plan.max_circles },
+                        { label: "معلمة", icon: GraduationCap, value: plan.max_teachers },
+                      ] as const
+                    ).map((l) => (
+                      <div
+                        key={l.label}
+                        className="rounded-xl border border-border/70 bg-background/60 p-2.5 text-center"
+                      >
+                        <l.icon className="mx-auto size-4 text-primary" />
+                        <div className="mt-1 text-sm font-semibold tabular-nums">
+                          {fmtLimit(l.value)}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">{l.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <ul className="mt-4 space-y-1.5">
+                    {data.features
+                      .filter((f) => data.included.has(`${plan.id}::${f.key}`))
+                      .map((f) => (
+                        <li key={f.key} className="flex items-start gap-2 text-sm">
+                          <Check className="mt-0.5 size-4 shrink-0 text-success" />
+                          <span>{f.name_ar}</span>
+                        </li>
+                      ))}
+                  </ul>
+
+                  <PlanCtaButton
+                    plan={plan}
+                    period={period}
+                    onRequest={setSelected}
+                    className="mt-5 h-11"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           تحتاجين تفاصيل الأسعار كاملة؟{" "}
@@ -333,6 +419,9 @@ function ComparePage() {
             صفحة الباقات والأسعار
           </Link>
         </p>
+
+        <CompareFaq />
+
       </main>
       <SiteFooter />
 
