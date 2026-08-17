@@ -46,6 +46,61 @@ function fmtLimit(n: number) {
   return n > 0 ? n.toLocaleString("ar-EG") : "بلا حدود";
 }
 
+type PlanCta =
+  | { kind: "trial"; label: string }
+  | { kind: "contact"; label: string }
+  | { kind: "request"; label: string };
+
+/** زر الاختيار المناسب لكل باقة: تجربة مجانية / تواصل / اشتراك */
+function planCta(plan: PlanRow, period: BillingPeriod): PlanCta {
+  if (plan.is_custom_priced) return { kind: "contact", label: "تواصلي معنا" };
+  if (planPrice(plan, period) === 0) return { kind: "trial", label: "ابدئي مجانًا" };
+  return { kind: "request", label: "اشتركي الآن" };
+}
+
+function PlanCtaButton({
+  plan,
+  period,
+  onRequest,
+  className,
+}: {
+  plan: PlanRow;
+  period: BillingPeriod;
+  onRequest: (plan: PlanRow) => void;
+  className?: string;
+}) {
+  const cta = planCta(plan, period);
+  const variant = plan.is_featured ? "default" : "outline";
+
+  if (cta.kind === "trial") {
+    return (
+      <Button asChild size="sm" variant={variant} className={cn("w-full", className)}>
+        <Link to="/auth" search={{ mode: "signup" } as never}>
+          {cta.label}
+        </Link>
+      </Button>
+    );
+  }
+  if (cta.kind === "contact") {
+    return (
+      <Button asChild size="sm" variant={variant} className={cn("w-full", className)}>
+        <Link to="/contact">{cta.label}</Link>
+      </Button>
+    );
+  }
+  return (
+    <Button
+      size="sm"
+      variant={variant}
+      className={cn("w-full", className)}
+      onClick={() => onRequest(plan)}
+    >
+      {cta.label}
+    </Button>
+  );
+}
+
+
 function useCompareData() {
   return useQuery({
     queryKey: ["plan-comparison"],
