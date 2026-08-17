@@ -163,7 +163,8 @@ function ComparePage() {
         {isLoading || !data ? (
           <LoadingBlock />
         ) : (
-          <div className="mt-10 overflow-x-auto rounded-2xl border border-border bg-card">
+          <div className="mt-10 hidden md:block">
+            <div className="overflow-x-auto rounded-2xl border border-border bg-card">
             <table className="w-full min-w-[720px] border-collapse text-sm">
               <thead>
                 <tr>
