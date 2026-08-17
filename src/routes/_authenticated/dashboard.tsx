@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoadingBlock, EmptyState } from "@/components/ui-blocks";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS } from "@/lib/roles";
+import { TenantLogo } from "@/components/TenantLogo";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardRouter,
