@@ -314,6 +314,17 @@ function TenantBrandingPage() {
         <aside className="grid gap-6">
           <div className="surface-panel space-y-3 p-6">
             <h2 className="flex items-center gap-2 font-display text-lg font-bold">
+              <Eye className="size-4 text-primary" />
+              معاينة الثيم
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              تتغيّر المعاينة فورًا مع تغيير الألوان أو الشعار، قبل الحفظ.
+            </p>
+            <ThemePreview name={tenant.name} logo={tenant.logo_url} primary={primary} accent={accent} />
+          </div>
+
+          <div className="surface-panel space-y-3 p-6">
+            <h2 className="flex items-center gap-2 font-display text-lg font-bold">
               <Upload className="size-4 text-primary" />
               الشعار
             </h2>
